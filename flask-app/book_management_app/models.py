@@ -1,3 +1,4 @@
+from book_management_app import db
 
 
 class Review(db.Model):

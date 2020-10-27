@@ -1,66 +1,21 @@
-'''
-Course Sign Up System
-1003576 LiuKaiyu
-
-Features:
-- Allow students to check course information and enroll/drop courses
-- Allow administrator to edit students' profile, add/remove students
-
-'''
-
-from flask import Flask, request, jsonify, make_response
-from flask_sqlalchemy import SQLAlchemy
-
-app = Flask(__name__)
-
-HOST = '127.0.0.1'
-PORT = 5000
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1234@localhost/testDB'
-db = SQLAlchemy(app)
+from book_management_app import app
+from book_management_app.models import Review
+from flask import request
 
 
-class Review(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    asin = db.Column(db.String(255), index=True, nullable=False)
-    helpful = db.Column(db.String(255), nullable=False)
-    overall = db.Column(db.String(255), nullable=False)
-    review_text = db.Column(db.Text, nullable=False)
-    review_time = db.Column(db.String(255), nullable=False)
-    reviewer_id = db.Column(db.String(255), nullable=False)
-    reviewer_name = db.Column(db.String(255), nullable=False)
-    summary = db.Column(db.Text, nullable=False)
-    unix_review_time = db.Column(db.Integer, nullable=False)
+# /review [GET, POST] -> Retrieve review,  post a review
 
-    def __repr__(self):
-        return (f"Review('{self.asin}', '{self.helpful}', '{self.overall}',"
-                f"'{self.review_text}, '{self.review_time}, '{self.reviewer_id}, '{self.reviewer_name}"
-                f", '{self.summary}), '{self.unix_review_time})")
+@app.route('/review', methods=['GET', 'POST'])
+def review(course):
+    if request.method == 'GET':
+        pass
+    else:
+        pass
+
+    return
 
 
-@app.route('/')
-def greeting():
 
-    return "Book Management System API"
-
-
-# # Show available courses
-# @app.route('/courses', methods=['GET'], defaults={'course': None})  # Show all courses
-# @app.route('/courses/<course>', methods=['GET'])  # Show a specific course
-# def courses_info(course):
-#     if course:
-#         course_info = course_manager.get_course(course)
-#         if course_info:
-#             return jsonify(course_info)
-#         else:
-#             return jsonify({'Error': 'Course not available'}), 400
-#     else:
-#         res = make_response(course_manager.get_all_courses(), 200)
-#         res.mimetype = "application/json"
-#         if request.headers.get('Content-Type') == 'text/plain':
-#             res.mimetype = "text/plain"
-#         return res
-#
 #
 # # Course enrollment, enroll/drop a course
 # # Student id is required in the request body
@@ -137,7 +92,3 @@ def greeting():
 #             student_manager.remove_student(each_id)
 #
 #     return jsonify(student_manager.get_all_students())
-
-
-if __name__ == '__main__':
-    app.run(host=HOST, port=PORT, debug=True)

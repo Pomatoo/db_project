@@ -31,6 +31,10 @@ API
 
 # /review [GET, POST] -> Retrieve review,  post a review
 
+# For HTTP GET method -> parameters are passed via variables in URL, should not have body for GET
+# POST -> Data is passed using Form Obj in flask 
+
+
 Questions for Profs:
 Login credentials, ssh key to instance (auto)?
 Instances specs /InstanceType(IMG id) is restricted
