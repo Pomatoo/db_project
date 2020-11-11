@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Home Page
+{% endblock title %}
+
+{% block content %}
+    <br><br><br><br>
+    <div class="content-section">
+        <form class="col-12" method="POST" action="">
+            {{ form.hidden_tag() }}
+            <div class="form-row">
+                {{ form.keyword(class="form-control col-sm-10", placeholder="Search Book/Author/ASIN") }}
+                {{ form.type(class="selectpicker") }}
+                {{ form.submit(class="btn btn-outline-secondary") }}
+            </div>
+        </form>
+    </div>
+
+{% endblock content %}

@@ -1,94 +1,73 @@
-from book_management_app import app
-from book_management_app.models import Review
-from flask import request
+from book_management_app import app, db, bcrypt, login_manager
+from book_management_app.models import Review, User
+from book_management_app.forms import RegistrationForm, LoginForm, SearchForm
+from flask import request, render_template, redirect, flash, url_for
+from flask_login import login_user, current_user, logout_user, login_required
 
 
 # /review [GET, POST] -> Retrieve review,  post a review
 
-@app.route('/review', methods=['GET', 'POST'])
-def review(course):
-    if request.method == 'GET':
-        pass
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+@app.route("/", methods=['GET', 'POST'])
+def home():
+    form = SearchForm()
+    if form.validate_on_submit():
+        print(form.keyword.data)
+        print(form.type.data)
+    return render_template('home.html', form=form)
+
+
+@app.route("/about", methods=['GET'])
+def about():
+    return render_template('about.html')
+
+
+@app.route("/management", methods=['GET'])
+@login_required
+def management():
+    if current_user.username == 'admin':
+        return render_template('management.html')
     else:
-        pass
-
-    return
-
+        flash('Please login as admin and try again', 'danger')
+        return render_template('403.html')
 
 
-#
-# # Course enrollment, enroll/drop a course
-# # Student id is required in the request body
-# @app.route('/enrollment/<course>', methods=['POST', 'DELETE'])
-# def course_enrollment(course):
-#     ############################## Validation ##############################
-#     student_id = request.json.get('id')
-#     if not student_id:
-#         return jsonify({'Error': 'id is required for course enrollment'}), 400
-#     elif not student_id.isdigit():
-#         return jsonify({'Error': 'id must be digits'}), 400
-#     elif not student_manager.get_student_by_id(student_id):
-#         return jsonify({'Error': 'Student %s is not enrolled in SUTD, call Admin' % student_id}), 400
-#
-#     if not course:
-#         return jsonify({'Info': 'Usage: /enrollment/<course name>'}), 400
-#     elif not course_manager.get_course(course):
-#         return jsonify({'Error': 'Course %s is not available' % course}), 400
-#     elif course_manager.get_course(course)['vacancy'] < 1:
-#         return jsonify({'Info': 'Course %s no vacancy' % course})
-#     ############################## Validation ##############################
-#
-#     # Add course
-#     if request.method == 'POST':
-#         student_manager.enroll_course(student_id, course)
-#         course_manager.update_vacancy(course, -1)
-#         return jsonify(student_manager.get_student_by_id(student_id))
-#
-#     # Drop course
-#     elif request.method == 'DELETE':
-#         student_manager.drop_course(student_id, course)
-#         course_manager.update_vacancy(course, -1)
-#         return jsonify(student_manager.get_student_by_id(student_id))
-#
-#     return 'None'
-#
-#
-# # Admin Operations, authentication needed
-# # username,password need to be set in request body
-# # Admin can view and edit students' profile
-# @app.route('/students/<student_id>', methods=['GET'])
-# @app.route('/students', methods=['GET', 'POST', 'DELETE'], defaults={'student_id': None})
-# def student_management(student_id):
-#     # Authentication
-#     username = request.json.get('username')
-#     password = request.json.get('password')
-#     if username is None or password is None:
-#         return jsonify({'Error': 'Missing Username or Password'}), 401
-#     elif username != ADMIN or password != PASSWORD:
-#         return jsonify({'Error': 'Unauthorized User'}), 401
-#
-#     # Get, return student(s) profile
-#     if request.method == 'GET':
-#         if student_id is None:
-#             return jsonify(student_manager.get_all_students())
-#         else:
-#             student_info = student_manager.get_student_by_id(student_id)
-#             if student_info is None:
-#                 return jsonify({'Info': 'Student %s is not enrolled in SUTD' % student_id})
-#             return jsonify(student_info)
-#
-#     # Post, add students
-#     # {'students':{'id1':info, 'id2':info2}}
-#     elif request.method == 'POST':
-#         students = request.json.get('students')
-#         for each_id in students.keys():
-#             student_manager.add_student(each_id, students[each_id])
-#
-#     # Delete, remove students by id
-#     # {'students' : ['id1', 'id2']}
-#     elif request.method == 'DELETE':
-#         students = request.json.get('students')
-#         for each_id in students:
-#             student_manager.remove_student(each_id)
-#
-#     return jsonify(student_manager.get_all_students())
+@app.route("/register", methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user = User(username=form.username.data, password=hashed_password)
+        db.session.add(user)
+        db.session.commit()
+        flash('Your account has been created! You are now able to log in', 'success')
+        return redirect(url_for('login'))
+    return render_template('register.html', title='Register', form=form)
+
+
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
+            login_user(user)
+            return redirect(url_for('management'))
+        else:
+            flash('Login Unsuccessful. Please check username and password', 'danger')
+    return render_template('login.html', title='Login', form=form)
+
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('home'))

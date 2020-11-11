@@ -12,7 +12,9 @@ mysql -uroot <<MYSQL_SCRIPT
 CREATE USER 'root'@'%' IDENTIFIED BY 'iStD-So.043-Database';
 GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';
 FLUSH PRIVILEGES;
-CREATE TABLE reviews(
+CREATE DATABASE IF NOT EXISTS testDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
+USE testDB;
+CREATE TABLE review(
 `id` INT(11) NOT NULL AUTO_INCREMENT,
 `asin` VARCHAR(255) NOT NULL,
 `helpful` VARCHAR(255) NOT NULL,
@@ -25,6 +27,13 @@ CREATE TABLE reviews(
 `unix_review_time` INT(11) NOT NULL,
 PRIMARY KEY (`id`),
 INDEX idx_asin (asin)
+);
+CREATE TABLE user(
+`id` INT(11) NOT NULL AUTO_INCREMENT,
+`username` VARCHAR(255) NOT NULL,
+`password` VARCHAR(255) NOT NULL,
+PRIMARY KEY (`id`),
+INDEX idx_username (username)
 );
 LOAD DATA LOCAL INFILE 'kindle_reviews.csv' INTO TABLE reviews FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS;
 MYSQL_SCRIPT
