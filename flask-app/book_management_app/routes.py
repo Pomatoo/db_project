@@ -1,5 +1,5 @@
-from book_management_app import app, db, bcrypt, login_manager
-from book_management_app.models import Review, User
+from book_management_app import app, db, mongo, bcrypt, login_manager
+from book_management_app.models import Review, User, Book
 from book_management_app.forms import RegistrationForm, LoginForm, SearchForm
 from flask import request, render_template, redirect, flash, url_for
 from flask_login import login_user, current_user, logout_user, login_required
@@ -18,7 +18,21 @@ def home():
     if form.validate_on_submit():
         print(form.keyword.data)
         print(form.type.data)
-    return render_template('home.html', form=form)
+        if form.type.data.lower() == 'asin':
+
+            book_meta = mongo.db.book_meta.find_one({'asin': form.keyword.data})
+            if book_meta:
+                reviews = Review.query.filter_by(asin=form.keyword.data).all()
+                print(type(reviews))
+                print('reviews size : %s ' % len(reviews))
+                for i in reviews:
+                    print(reviews)
+            else:
+                flash('Book %s not found' % form.keyword.data, 'danger')
+        elif form.type.data.lower() == 'book':
+            pass
+
+    return render_template('home.html', form=form, books=[1])
 
 
 @app.route("/about", methods=['GET'])
@@ -71,3 +85,4 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('home'))
+

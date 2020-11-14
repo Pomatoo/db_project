@@ -28,6 +28,6 @@ class LoginForm(FlaskForm):
 
 
 class SearchForm(FlaskForm):
-    keyword = StringField('Keyword', validators=[DataRequired(), Length(min=2, max=100)])
-    type = SelectField('Type', choices=['ASIN', 'Book', 'Author'])
+    keyword = StringField('Keyword', validators=[DataRequired(), Length(min=1, max=100)])
+    type = SelectField('Type', choices=['ASIN', 'Book'])
     submit = SubmitField('Search')
