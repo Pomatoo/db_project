@@ -1,3 +1,6 @@
+with open('./requirements', 'r') as f:
+    for i in f:
+        print(i)
 # import boto3
 # from botocore.exceptions import ClientError
 #
@@ -68,25 +71,25 @@
 import pymongo
 import json
 
-# client = pymongo.MongoClient('mongodb://localhost:27017/')
-client = pymongo.MongoClient('mongodb://34.69.84.149:27017/test')
-db = client['test']
-collection = db['book_meta']
-
-data_ls = []
-file = open(r'C:\Users\Tomatoo\Desktop\meta_Kindle_Store.json', 'r')
-for each_line in file:
-    data_dictionary = eval(each_line)
-    data_ls.append(data_dictionary)
-file.close()
-
-# insert_many takes a list and insert all data in one shot
-x = collection.insert_many(data_ls)
-print(x.inserted_ids)
-
-for i in collection.find({'asin': 'B000F83STC'}):
-    print(i)
-client.close()
+# # client = pymongo.MongoClient('mongodb://localhost:27017/')
+# client = pymongo.MongoClient('mongodb://34.69.84.149:27017/test')
+# db = client['test']
+# collection = db['book_meta']
+#
+# data_ls = []
+# file = open(r'C:\Users\Tomatoo\Desktop\meta_Kindle_Store.json', 'r')
+# for each_line in file:
+#     data_dictionary = eval(each_line)
+#     data_ls.append(data_dictionary)
+# file.close()
+#
+# # insert_many takes a list and insert all data in one shot
+# x = collection.insert_many(data_ls)
+# print(x.inserted_ids)
+#
+# for i in collection.find({'asin': 'B000F83STC'}):
+#     print(i)
+# client.close()
 
 
 # Dump Data to MySQL
