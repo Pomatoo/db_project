@@ -1,6 +1,6 @@
 from book_management_app import app, db, mongo, bcrypt, login_manager
 from book_management_app.models import Review, User, Book
-from book_management_app.forms import RegistrationForm, LoginForm, SearchForm
+from book_management_app.forms import RegistrationForm, LoginForm, SearchForm, addBookForm
 from flask import request, render_template, redirect, flash, url_for
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -19,8 +19,8 @@ def home():
         print(form.keyword.data)
         print(form.type.data)
         if form.type.data.lower() == 'asin':
-
             book_meta = mongo.db.book_meta.find_one({'asin': form.keyword.data})
+            print('Book meta %s ' % book_meta)
             if book_meta:
                 reviews = Review.query.filter_by(asin=form.keyword.data).all()
                 print(type(reviews))
@@ -86,3 +86,16 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
+
+@app.route("/addbook", methods=['GET', 'POST'])
+def addbook():
+    form = addBookForm()
+    if form.validate_on_submit():
+        print(form.asin.data)
+        print(form.Title.data)
+        mongo.db.book_meta.insert({'asin': form.asin.data, 'title': form.Title.data})
+        return redirect(url_for('home'))
+    else:
+        print("Add book failed")
+
+    return render_template('add-book.html', title='Add Book', form=form)

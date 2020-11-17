@@ -31,3 +31,8 @@ class SearchForm(FlaskForm):
     keyword = StringField('Keyword', validators=[DataRequired(), Length(min=1, max=100)])
     type = SelectField('Type', choices=['ASIN', 'Book'])
     submit = SubmitField('Search')
+
+class addBookForm(FlaskForm):
+    asin = StringField('asin', validators=[DataRequired(),Length(min=1, max=100)])
+    Title = StringField('Title', validators=[DataRequired(),Length(min=1, max=100)])
+    submit = SubmitField('Add')
