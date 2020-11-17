@@ -33,6 +33,9 @@ class SearchForm(FlaskForm):
     submit = SubmitField('Search')
 
 class addBookForm(FlaskForm):
-    asin = StringField('asin', validators=[DataRequired(),Length(min=1, max=100)])
+    asin = StringField('ASIN', validators=[DataRequired(),Length(min=1, max=100)])
     Title = StringField('Title', validators=[DataRequired(),Length(min=1, max=100)])
+    Price = StringField('Price', validators=[DataRequired(), Length(min=1, max=100)])
+    Description = StringField('Description', validators=[DataRequired(), Length(min=1, max=100)])
+    ImageURL = StringField('ImageURL', validators=[DataRequired(), Length(min=1, max=100)])
     submit = SubmitField('Add')

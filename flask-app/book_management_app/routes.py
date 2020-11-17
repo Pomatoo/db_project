@@ -94,7 +94,9 @@ def addbook():
     if form.validate_on_submit():
         print(form.asin.data)
         print(form.Title.data)
-        mongo.db.book_meta.insert({'asin': form.asin.data, 'title': form.Title.data})
+        mongo.db.book_meta.insert({'asin': form.asin.data, 'title': form.Title.data,
+                                   'price': form.Price.data, 'description': form.Description.data,
+                                   'imUrl': form.ImageURL.data})
         return redirect(url_for('home'))
     else:
         print("Add book failed")
