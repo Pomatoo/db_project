@@ -15,6 +15,16 @@ def load_user(user_id):
 @app.route("/", methods=['GET', 'POST'])
 def home():
     form = SearchForm()
+    book_meta = mongo.db.book_meta.find()
+    i = 0
+    books_list = []
+    for book in book_meta:
+        i += 1
+        if i == 10:
+            break
+        print(book)
+        books_list.append(book)
+
     if form.validate_on_submit():
         print(form.keyword.data)
         print(form.type.data)
@@ -33,7 +43,7 @@ def home():
         elif form.type.data.lower() == 'book':
             pass
 
-    return render_template('home.html', form=form, books=[1])
+    return render_template('home.html', form=form, books=books_list)
 
 
 @app.route("/about", methods=['GET'])
@@ -45,6 +55,8 @@ def about():
 @login_required
 def management():
     if current_user.username == 'admin':
+
+
         return render_template('management.html')
     else:
         flash('Please login as admin and try again', 'danger')
