@@ -22,6 +22,7 @@ def home():
             book_meta = mongo.db.book_meta.find_one({'asin': form.keyword.data})
             print('Book meta %s ' % book_meta)
             if book_meta:
+                print(book_meta)
                 reviews = Review.query.filter_by(asin=form.keyword.data).all()
                 print(type(reviews))
                 print('reviews size : %s ' % len(reviews))
