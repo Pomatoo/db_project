@@ -14,19 +14,11 @@ class Review(db.Model):
     summary = db.Column(db.Text, nullable=False)
     unix_review_time = db.Column(db.Integer, nullable=False)
 
-    def __repr__(self):
-        return (f"Review('{self.asin}', '{self.helpful}', '{self.overall}',"
-                f"'{self.review_text}, '{self.review_time}, '{self.reviewer_id}, '{self.reviewer_name}"
-                f", '{self.summary}), '{self.unix_review_time})")
-
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
-
-    def __repr__(self):
-        return f"User('{self.username}')"
 
 
 class Book(object):
