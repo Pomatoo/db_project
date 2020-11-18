@@ -43,14 +43,17 @@ class WorkerThread(threading.Thread):
     def instance_set_up(self):
         new_instance = self.aws_manager.create_an_instance()
         self.instance_details = new_instance
-        sleep(5)
+        log('Thread-%s waiting for instance initialization, ETA 3 mins ' % self.thread_name)
+        while 1:
+            if self.aws_manager.instance_is_reachable(new_instance['id']):
+                break
+            sleep(30)
+            log('Thread-%s instance is still initializing ' % self.thread_name)
+        log('Thread-%s instance is initialized, SSH to instance' % self.thread_name)
         while 1:
             try:
                 ssh_instance = get_ssh_client(new_instance['ip'], self.aws_manager.get_access_key_name())
                 ssh_instance.put(self.sh_file)
-                if self.thread_name == 'Web':
-                    ssh_instance.put('web_config.conf', '~/')
-                    ssh_instance.run('chmod 777 ~/web_config.conf')
                 ssh_instance.run('chmod 777 ./%s' % self.sh_file)
                 ssh_instance.run('bash ./%s' % self.sh_file)
             except Exception as e:
@@ -103,7 +106,16 @@ class AwsManager(object):
     def get_security_group_name(self):
         return self.__security_group_name
 
-    def get_instance_status(self, instance_id):
+    def instance_is_reachable(self, instance_id):
+        response = self.__ec_client.describe_instance_status(
+            InstanceIds=[instance_id]
+        )
+        if len(response['InstanceStatuses']) != 0 \
+                and response['InstanceStatuses'][0]['InstanceStatus']['Details'][0]['Status'] == 'passed':
+            return True
+        return False
+
+    def get_instance_state(self, instance_id):
         response = self.__ec_client.describe_instances(
             InstanceIds=[instance_id]
         )
@@ -127,7 +139,7 @@ class AwsManager(object):
         response = self.__ec_client.delete_security_group(
             GroupName=group_name,
         )
-        log('Security Group id:%s is deleted' % group_name)
+        log('Security Group %s is deleted' % group_name)
 
     def create_an_instance(self):
         """
@@ -144,9 +156,9 @@ class AwsManager(object):
             SecurityGroups=[self.__security_group_name]
         )
         instance_id = ec2_instance['Instances'][0]['InstanceId']
-        sleep(3)
+        sleep(10)
         while 1:
-            if self.get_instance_status(instance_id) == 'running':
+            if self.get_instance_state(instance_id) == 'running':
                 break
             sleep(3)
 
@@ -236,9 +248,9 @@ if __name__ == "__main__":
     # instance = aws_manager.create_an_instance()
     # log(instance)
     # breakpoint()
-    aws_manager = AwsManager()
-    a = aws_manager.create_an_instance()
-    log(a)
+    # aws_manager = AwsManager()
+    # a = aws_manager.create_an_instance()
+    # log(a)
     # iid = instance['id']
     # aws_manager.terminate_instances(iid)
     # log('Waiting All Instances to be terminated ... ')
@@ -252,13 +264,17 @@ if __name__ == "__main__":
     # aws_manager.remove_security_group('Database_project')
 
     # Send cmd over SSH
-    # from fabric import Connection
-    #
-    # c = Connection(
-    #     host='18.206.15.56',
-    #     user="ubuntu",
-    #     connect_kwargs={
-    #         "key_filename": "databaseProjectKey.pem",
-    #     }
-    # )
-    # c.run()
+    from fabric import Connection
+
+    c = Connection(
+        host='3.233.219.244',
+        user="ubuntu",
+        connect_kwargs={
+            "key_filename": "databaseProjectKeyGroup14.pem",
+        }
+    )
+
+    # c.put('./web_config.conf')
+    c.run('rm -rf *.conf')
+    # ssh_instance.put('web_config.conf', '~/')
+    c.run('ls -la')
