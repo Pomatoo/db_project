@@ -43,13 +43,14 @@ class WorkerThread(threading.Thread):
     def instance_set_up(self):
         new_instance = self.aws_manager.create_an_instance()
         self.instance_details = new_instance
+        sleep(5)
         while 1:
             try:
                 ssh_instance = get_ssh_client(new_instance['ip'], self.aws_manager.get_access_key_name())
                 ssh_instance.put(self.sh_file)
                 if self.thread_name == 'Web':
-                    ssh_instance.put('web_config.conf', '/etc/')
-                    ssh_instance.run('chmod 777 /etc/web_config.conf')
+                    ssh_instance.put('web_config.conf', '~/')
+                    ssh_instance.run('chmod 777 ~/web_config.conf')
                 ssh_instance.run('chmod 777 ./%s' % self.sh_file)
                 ssh_instance.run('bash ./%s' % self.sh_file)
             except Exception as e:
@@ -90,7 +91,7 @@ class AwsManager(object):
 
         self.__ec_client = boto3.client('ec2', **credentials)
         self.__access_key_name = self.__config.get('aws-credentials', 'access_key_name')
-        self.__security_group_id = None
+        self.__security_group_name = self.__config.get('aws-credentials', 'security_group_name')
 
         if init_security_group_and_key:
             self.__create_security_group()
@@ -99,8 +100,8 @@ class AwsManager(object):
     def get_access_key_name(self):
         return self.__access_key_name
 
-    def get_security_group_id(self):
-        return self.__security_group_id
+    def get_security_group_name(self):
+        return self.__security_group_name
 
     def get_instance_status(self, instance_id):
         response = self.__ec_client.describe_instances(
@@ -122,11 +123,11 @@ class AwsManager(object):
         )
         log('Key pair %s is deleted' % key_name)
 
-    def remove_security_group(self, group_id):
+    def remove_security_group(self, group_name):
         response = self.__ec_client.delete_security_group(
-            GroupId=group_id,
+            GroupName=group_name,
         )
-        log('Security Group id:%s is deleted' % group_id)
+        log('Security Group id:%s is deleted' % group_name)
 
     def create_an_instance(self):
         """
@@ -140,7 +141,7 @@ class AwsManager(object):
             MaxCount=1,
             InstanceType=self.__config.get('aws-credentials', 'instance_type'),
             KeyName=self.__access_key_name,
-            SecurityGroupIds=[self.__security_group_id]
+            SecurityGroups=[self.__security_group_name]
         )
         instance_id = ec2_instance['Instances'][0]['InstanceId']
         sleep(3)
@@ -154,7 +155,7 @@ class AwsManager(object):
         )['Reservations'][0]['Instances'][0]['PublicIpAddress']
 
         log('Instance is created, ip:%s, id:%s, key:%s, security-group:%s ' %
-            (public_ip, instance_id, self.__access_key_name, self.__security_group_id))
+            (public_ip, instance_id, self.__access_key_name, self.__security_group_name))
         return {'id': instance_id, 'ip': public_ip}
 
     def __create_access_key(self):
@@ -174,8 +175,7 @@ class AwsManager(object):
         with open('%s.pem' % self.__access_key_name, 'w') as f:
             f.write(key)
         log(os.getcwd() + os.path.sep + '%s.pem is created' % self.__access_key_name)
-        if os.name != 'nt':
-            os.chmod('%s.pem' % self.__access_key_name, 0o400)
+        os.chmod('%s.pem' % self.__access_key_name, 0o400)
 
     def __create_security_group(self):
         """
@@ -200,11 +200,11 @@ class AwsManager(object):
                 GroupName=self.__config.get('aws-credentials', 'security_group_name'),
                 Description='Database project security group',
                 VpcId=vpc_id)
-            self.__security_group_id = response['GroupId']
-            log('Security Group Created %s in vpc %s.' % (self.__security_group_id, vpc_id))
+            group_id = response['GroupId']
+            log('Security Group Created %s in vpc %s.' % (group_id, vpc_id))
 
             data = self.__ec_client.authorize_security_group_ingress(
-                GroupId=self.__security_group_id,
+                GroupId=group_id,
                 IpPermissions=[
                     {'IpProtocol': 'tcp',
                      'FromPort': 8080,
@@ -232,22 +232,24 @@ class AwsManager(object):
 
 
 if __name__ == "__main__":
-    aws_manager = AwsManager(init_security_group_and_key=True)
-    instance = aws_manager.create_an_instance()
-    log(instance)
-    breakpoint()
+    # aws_manager = AwsManager(init_security_group_and_key=True)
+    # instance = aws_manager.create_an_instance()
+    # log(instance)
+    # breakpoint()
     aws_manager = AwsManager()
-    iid = instance['id']
-    aws_manager.terminate_instances(iid)
-    log('Waiting All Instances to be terminated ... ')
-    while 1:
-        status = aws_manager.get_instance_status(iid)
-        if status == 'terminated':
-            break
-        sleep(10)
-
-    aws_manager.remove_key_pair('databaseProjectKey')
-    aws_manager.remove_security_group('Database_project')
+    a = aws_manager.create_an_instance()
+    log(a)
+    # iid = instance['id']
+    # aws_manager.terminate_instances(iid)
+    # log('Waiting All Instances to be terminated ... ')
+    # while 1:
+    #     status = aws_manager.get_instance_status(iid)
+    #     if status == 'terminated':
+    #         break
+    #     sleep(10)
+    #
+    # aws_manager.remove_key_pair('databaseProjectKey')
+    # aws_manager.remove_security_group('Database_project')
 
     # Send cmd over SSH
     # from fabric import Connection
