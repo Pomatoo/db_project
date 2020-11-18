@@ -1,6 +1,7 @@
 import boto3
 import os
 import json
+import threading
 from time import strftime
 from botocore.exceptions import ClientError
 from configparser import ConfigParser
@@ -26,6 +27,42 @@ def get_ssh_client(ip, key):
             "key_filename": key + ".pem",
         }
     )
+
+
+class WorkerThread(threading.Thread):
+    def __init__(self, _aws_manager, thread_name, sh_file):
+        threading.Thread.__init__(self)
+        self.thread_name = thread_name
+        self.sh_file = sh_file
+        self.instance_details = None
+        self.aws_manager = _aws_manager
+
+    def get_instance_details(self):
+        return self.instance_details
+
+    def instance_set_up(self):
+        new_instance = self.aws_manager.create_an_instance()
+        self.instance_details = new_instance
+        while 1:
+            try:
+                ssh_instance = get_ssh_client(new_instance['ip'], self.aws_manager.get_access_key_name())
+                ssh_instance.put(self.sh_file)
+                if self.thread_name == 'Web':
+                    ssh_instance.put('web_config.conf', '/etc/')
+                    ssh_instance.run('chmod 777 /etc/web_config.conf')
+                ssh_instance.run('chmod 777 ./%s' % self.sh_file)
+                ssh_instance.run('bash ./%s' % self.sh_file)
+            except Exception as e:
+                print(e)
+                sleep(5)
+            else:
+                break
+        ssh_instance.close()
+
+    def run(self):
+        log('Running Thread-%s' % self.thread_name)
+        self.instance_set_up()
+        log('Thread-%s END' % self.thread_name)
 
 
 class AwsManager(object):
@@ -170,8 +207,8 @@ class AwsManager(object):
                 GroupId=self.__security_group_id,
                 IpPermissions=[
                     {'IpProtocol': 'tcp',
-                     'FromPort': 80,
-                     'ToPort': 80,
+                     'FromPort': 8080,
+                     'ToPort': 8080,
                      'IpRanges': [{'CidrIp': '0.0.0.0/0'}]},
                     {'IpProtocol': 'tcp',
                      'FromPort': 22,

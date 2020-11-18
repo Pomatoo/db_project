@@ -7,4 +7,4 @@ source ~/db_project/flask-app/venv/bin/activate
 pip3 install --upgrade pip
 pip3 install -r ~/db_project/flask-app/requirements
 pip3 install PyMySQL pymongo boto3 Flask Flask-WTF Flask-Bcrypt Flask-Login Flask-PyMongo Flask-SQLAlchemy fabric WTForms
-nohup python3 ~/db_project/flask-app/run.py &
+nohup python3 ~/db_project/flask-app/run.py deploy > /dev/null 2>&1 &
