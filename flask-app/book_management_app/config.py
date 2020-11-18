@@ -3,8 +3,8 @@ from configparser import ConfigParser
 
 class Config:
     cf = ConfigParser()
-    cf.read('./web_config.conf')
-    # cf.read('/etc/web_conf.conf')
+    # cf.read('./web_config.conf')
+    cf.read('/etc/web_conf.conf')
     mysql = cf.get('db', 'mysql')
     mongo = cf.get('db', 'mongo')
 
