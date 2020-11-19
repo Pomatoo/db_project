@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-sudo apt-get update && sudo apt-get upgrade -y
+sudo apt-get update
 sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password password isTdSoo43'
 sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password isTdSoo43'
 sudo apt-get -y install mysql-server

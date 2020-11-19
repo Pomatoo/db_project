@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-sudo apt-get install -y wget
-wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
 sudo apt-get update
-sudo apt-get install -y unzip mongodb-org
+sudo apt-get install -y wget unzip
+wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-get-key add -
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt-get/ubuntu xenial/mongodb-org/4.4 multiverse" | sudo tee /etc/apt-get/sources.list.d/mongodb-org-4.4.list
+sudo apt-get update && sudo apt-get-get install -y mongodb-org
 sudo systemctl start mongod
 sudo systemctl enable mongod
 wget -c https://istd50043.s3-ap-southeast-1.amazonaws.com/meta_kindle_store.zip -O meta_kindle_store.zip
