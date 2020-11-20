@@ -116,7 +116,7 @@ def addbook():
     return render_template('add-book.html', title='Add Book', form=form)
 
 
-@app.route("/review/%s", asin, methods=['GET', 'POST'])
+@app.route("/review/%s", methods=['GET', 'POST'])
 def reviews(asin):
     form = SearchForm()
     book_meta = mongo.db.book_meta.find()
