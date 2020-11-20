@@ -29,15 +29,16 @@ def home():
         print(form.keyword.data)
         print(form.type.data)
         if form.type.data.lower() == 'asin':
-            book_meta = mongo.db.book_meta.find_one({'asin': form.keyword.data})
-            print('Book meta %s ' % book_meta)
-            if book_meta:
-                print(book_meta)
+            book_meta1 = mongo.db.book_meta.find_one({'asin': form.keyword.data})
+            print('Book meta %s ' % book_meta1)
+            if book_meta1:
+                print(book_meta1)
                 reviews = Review.query.filter_by(asin=form.keyword.data).all()
                 print(type(reviews))
                 print('reviews size : %s ' % len(reviews))
                 for i in reviews:
-                    print(reviews)
+                    print(i.review_text)
+                return redirect(url_for('reviews'))
             else:
                 flash('Book %s not found' % form.keyword.data, 'danger')
         elif form.type.data.lower() == 'book':
@@ -55,7 +56,6 @@ def about():
 @login_required
 def management():
     if current_user.username == 'admin':
-
 
         return render_template('management.html')
     else:
@@ -114,3 +114,38 @@ def addbook():
         print("Add book failed")
 
     return render_template('add-book.html', title='Add Book', form=form)
+
+
+@app.route("/review/%s", asin, methods=['GET', 'POST'])
+def reviews(asin):
+    form = SearchForm()
+    book_meta = mongo.db.book_meta.find()
+    i = 0
+    books_list = []
+    for book in book_meta:
+        i += 1
+        if i == 10:
+            break
+        print(book)
+        books_list.append(book)
+
+    if form.validate_on_submit():
+        print(form.keyword.data)
+        print(form.type.data)
+        if form.type.data.lower() == 'asin':
+            book_meta1 = mongo.db.book_meta.find_one({'asin': form.keyword.data})
+            print('Book meta %s ' % book_meta1)
+            if book_meta1:
+                print(book_meta1)
+                review = Review.query.filter_by(asin=form.keyword.data).all()
+                print(type(review))
+                print('reviews size : %s ' % len(review))
+                for i in review:
+                    print(i.review_text)
+                return redirect(url_for('reviews'))
+            else:
+                flash('Book %s not found' % form.keyword.data, 'danger')
+        elif form.type.data.lower() == 'book':
+            pass
+
+    return render_template('review.html', title='Review', reviews=review, form=form)
