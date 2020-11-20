@@ -23,11 +23,11 @@ A front-end with at least the following functionalities:
     I'm Feeling Lucky -> Suggest a book 
 
 API
-# domain/signup [GET, POST] -> Sign up
-# /login [GET,POST] -> Login
+1# domain/signup [GET, POST] -> Sign up
+1# /login [GET,POST] -> Login
 
-# /home [GET] -> Home page, display top rated books
-# /book [GET, POST] -> Add a book -{asin,author,price .. }, search/get a book {asin,author,tile}
+0.5# /home [GET] -> Home page, display top rated books
+# /book [GET, POST] -> Add a book -{asin,author,price .. }, search/get a book {asin,tile}
 
 # /review [GET, POST] -> Retrieve review,  post a review
 

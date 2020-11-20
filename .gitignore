@@ -1,3 +1,4 @@
 p50_venv/
 pc_venv/
 .idea
+automation_scripts/aws_config.conf
