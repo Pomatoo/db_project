@@ -1,6 +1,6 @@
-from book_management_app import app, db, bcrypt, login_manager
-from book_management_app.models import Review, User
-from book_management_app.forms import RegistrationForm, LoginForm, SearchForm
+from book_management_app import app, db, mongo, bcrypt, login_manager
+from book_management_app.models import Review, User, Book
+from book_management_app.forms import RegistrationForm, LoginForm, SearchForm, addBookForm
 from flask import request, render_template, redirect, flash, url_for
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -15,10 +15,35 @@ def load_user(user_id):
 @app.route("/", methods=['GET', 'POST'])
 def home():
     form = SearchForm()
+    book_meta = mongo.db.book_meta.find()
+    i = 0
+    books_list = []
+    for book in book_meta:
+        i += 1
+        if i == 10:
+            break
+        print(book)
+        books_list.append(book)
+
     if form.validate_on_submit():
         print(form.keyword.data)
         print(form.type.data)
-    return render_template('home.html', form=form)
+        if form.type.data.lower() == 'asin':
+            book_meta = mongo.db.book_meta.find_one({'asin': form.keyword.data})
+            print('Book meta %s ' % book_meta)
+            if book_meta:
+                print(book_meta)
+                reviews = Review.query.filter_by(asin=form.keyword.data).all()
+                print(type(reviews))
+                print('reviews size : %s ' % len(reviews))
+                for i in reviews:
+                    print(reviews)
+            else:
+                flash('Book %s not found' % form.keyword.data, 'danger')
+        elif form.type.data.lower() == 'book':
+            pass
+
+    return render_template('home.html', form=form, books=books_list)
 
 
 @app.route("/about", methods=['GET'])
@@ -71,3 +96,19 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
+
+@app.route("/addbook", methods=['GET', 'POST'])
+def add_book():
+    form = addBookForm()
+    if form.validate_on_submit():
+        print(form.asin.data)
+        print(form.Title.data)
+        mongo.db.book_meta.insert({'asin': form.asin.data, 'title': form.Title.data,
+                                   'price': form.Price.data, 'description': form.Description.data,
+                                   'imUrl': form.ImageURL.data})
+        return redirect(url_for('home'))
+    else:
+        print("Add book failed")
+
+    return render_template('add-book.html', title='Add Book', form=form)
