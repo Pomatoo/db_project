@@ -1,20 +1,73 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    Home Page
+Home Page
 {% endblock title %}
 
 {% block content %}
-    <br><br><br><br>
-    <div class="content-section">
-        <form class="col-12" method="POST" action="">
-            {{ form.hidden_tag() }}
-            <div class="form-row">
-                {{ form.keyword(class="form-control col-sm-10", placeholder="Search Book/Author/ASIN") }}
-                {{ form.type(class="selectpicker") }}
-                {{ form.submit(class="btn btn-outline-secondary") }}
-            </div>
-        </form>
-    </div>
+<br><br><br><br>
+<div class="content-section">
+    <form class="col-12" method="POST" action="">
+        {{ form.hidden_tag() }}
+        <div class="form-row">
+            {{ form.keyword(class="form-control col-sm-10", placeholder="Search Book/ASIN") }}
+            {{ form.type(class="selectpicker") }}
+            {{ form.submit(class="btn btn-outline-secondary") }}
+        </div>
+    </form>
+</div>
+<br><br><br><br><br>
+<div id="check"></div>
+<select class="filtercategory">
+	<option value="-1">Filter By Category</option>
+	<option data-ref="one" >First One</option>
+	<option data-ref="two" >First Two</option>
+	<option data-ref="three">First Three</option>
+</select>
 
+<nav aria-label="Page navigation example">
+  <ul class="pagination" style="width:100%; overflow-x: scroll; ">
+<!--    <li class="page-item">-->
+<!--      <a class="page-link" href="#" aria-label="Previous">-->
+<!--        <span aria-hidden="true">&laquo;</span>-->
+<!--        <span class="sr-only">Previous</span>-->
+<!--      </a>-->
+<!--    </li>-->
+{% for pg_no in page_numbers %}
+            <a class="btn btn-outline-info mb-4" href="{{ url_for('home', page_size=page_size, page_num=pg_no) }}">{{ pg_no }}</a>
+        {% endfor %}
+    <li class="page-item">
+<!--      <a class="page-link" href="#" aria-label="Next">-->
+<!--        <span aria-hidden="true">&raquo;</span>-->
+<!--        <span class="sr-only">Next</span>-->
+<!--      </a>-->
+<!--    </li>-->
+  </ul>
+</nav>
+<div class="container">
+    <div class="row">
+        {% for book in books %}
+        <div class="col-md-4">
+            <div class="container">
+                <div class="book-image">
+                  <a href = "{{ url_for('book', asin=book.asin) }}">
+                      <img alt="Book Image"
+                         src={{ book.imUrl }}></a>
+                    <div class="book-description">
+                        <div style="height:75px; overflow-y: scroll; margin: 5px;">
+                        <strong>{{ book.description }}</strong>
+                        </div>>
+                    </div>
+                    <div class="asin">
+                        <strong>{{ book.asin }}</strong>
+                    </div>
+                    <div class="book-price">
+                        <i>{{ book.price }}</i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 {% endblock content %}

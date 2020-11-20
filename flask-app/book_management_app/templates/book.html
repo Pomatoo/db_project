@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Book Info Page
+{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="container">
+                <div class="book-image">
+                  <img alt="Book Image"
+                         src = {{ book_list.imUrl }}>
+                    <div class="book-description">
+                        <div style="height:75px; overflow-y: scroll; margin: 5px;">
+                        <strong>{{ book_list.description }}</strong>
+                        </div>>
+                    </div>
+                    <div class="asin">
+                        <strong>{{ book_list.asin }}</strong>
+                    </div>
+                    <div class="book-price">
+                        <i>{{ book_list.price }}</i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
