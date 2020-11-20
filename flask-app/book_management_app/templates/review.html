@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}
+    Reviews
+{% endblock %}
+
+{% block content %}
+    <br><br><br><br>
+    <div class="content-section">
+        <form class="col-12" method="POST" action="">
+            {{ form.hidden_tag() }}
+            <div class="form-row">
+                {{ form.keyword(class="form-control col-sm-10", placeholder="Search Book/ASIN") }}
+                {{ form.type(class="selectpicker") }}
+                {{ form.submit(class="btn btn-outline-secondary") }}
+            </div>
+        </form>
+    </div>
+    <br><br><br><br>
+    <div class="container">
+        <legend class="border-bottom mb-4">Reviews</legend>
+            <div class="col">
+                {% for i in reviews %}
+                    <div class="col-md-4">
+                        <div class="container">
+                            <div class="Review">
+                                <div class="Review Text">
+                                    <strong>i.review_text</strong>
+                                </div>
+                                <div class="Rating">
+                                    <i>i.overall</i>
+                                </div>
+                                <div class="Review Time">
+                                    <strong>i.reviewTime</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+    </div>
+
+
+    </div>
+
+{% endblock %}
