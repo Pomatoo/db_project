@@ -4,39 +4,65 @@
 {% endblock %}
 
 {% block content %}
-    <br><br><br><br>
-    <div class="content-section">
-        <form class="col-12" method="POST" action="">
-            {{ form.hidden_tag() }}
-            <div class="form-row">
-                {{ form.keyword(class="form-control col-sm-10", placeholder="Search Book/ASIN") }}
-                {{ form.type(class="selectpicker") }}
-                {{ form.submit(class="btn btn-outline-secondary") }}
-            </div>
-        </form>
-    </div>
-    <br><br><br><br>
     <div class="container">
         <legend class="border-bottom mb-4">Reviews</legend>
-            <div class="col">
+            <br class="row">
+                <div class = "metadata">
+                    <img alt="Book Image"
+                        src = {{bookmeta.imUrl}}>
+                    <div class="Title">
+                        <strong>Title: {{bookmeta.title}}</strong>
+                    </div>
+                    <div class = "ASIN">
+                        <strong>ASIN: {{bookmeta.asin}}</strong>
+                    </div>
+                    <div class = "categories">
+                        <strong>Categories: {{bookmeta.categories}}</strong>
+                    </div>
+                    <div class = "description">
+                        <strong>Description: {{bookmeta.description}}</strong>
+                    </div>
+                    <div class = "price">
+                        <i>Price: {{bookmeta.price}}</i>
+                    </div>
+                    <div class = "related">
+                        <strong>Related: {{bookmeta.related}}</strong>
+                    </div>
+                    <div class = "buy after viewing">
+                        <strong>Buy After Viewing: {{bookmeta.buy_after_viewing}}</strong>
+                    </div>
+                <br>
                 {% for i in reviews %}
-                    <div class="col-md-4">
+                    <div class="col-md-12">
                         <div class="container">
                             <div class="Review">
+                                <div class = "Reviewer Name">
+                                    <strong>Reviewer: {{i.reviewer_name}}</strong>
+                                </div>
+                                <div class = "Reviewer ID">
+                                    <i>ID: {{i.reviewer_id}}</i>
+                                </div>
+                                <div class = "summary">
+                                    <strong>Summary: {{i.summary}}</strong>
+                                </div>
                                 <div class="Review Text">
-                                    <strong>i.review_text</strong>
+                                    <strong>Review: {{i.review_text}}</strong>
                                 </div>
                                 <div class="Rating">
-                                    <i>i.overall</i>
+                                    <i>Score: {{i.overall}}/5</i>
                                 </div>
                                 <div class="Review Time">
-                                    <strong>i.reviewTime</strong>
+                                    <strong>Time of Review: {{i.review_time}}</strong>
                                 </div>
+                                <div class ="helpful">
+                                    <strong>[Helpful, Total]: {{i.helpful}}</strong>
+                                </div>
+                                <br>
                             </div>
                         </div>
                     </div>
                 {% endfor %}
-            </div>
+            </img>
     </div>
 
 
