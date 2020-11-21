@@ -62,6 +62,7 @@ def about():
 @app.route("/management/<page_num>/<page_size>", methods=['GET', 'POST'])
 @login_required
 def management(page_size, page_num):
+    form = SearchForm()
     if current_user.username == 'admin':
         page_num = int(page_num)
         page_size = int(page_size)
@@ -73,7 +74,28 @@ def management(page_size, page_num):
 
             book_list.append(book)
 
-        return render_template('management.html', books=book_list, page_numbers=page_numbers, page_size=page_size,
+        if form.validate_on_submit():
+            print(form.keyword.data)
+            print(form.type.data)
+
+            if form.type.data.lower() == 'asin':
+
+                book_meta1 = mongo.db.book_meta.find_one({'asin': form.keyword.data})
+                print('Book meta %s ' % book_meta1)
+                if book_meta:
+                    print(book_meta1)
+                    reviews = Review.query.filter_by(asin=form.keyword.data).all()
+                    print(type(reviews))
+                    print('reviews size : %s ' % len(reviews))
+                    for i in reviews:
+                        print(i.review_text)
+                    return redirect(url_for('reviews'))
+                else:
+                    flash('Book %s not found' % form.keyword.data, 'danger')
+            elif form.type.data.lower() == 'book':
+                pass
+
+        return render_template('management.html', form=form, books=book_list, page_numbers=page_numbers, page_size=page_size,
                            page_num=page_num)
     else:
         flash('Please login as admin and try again', 'danger')

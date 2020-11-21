@@ -5,6 +5,19 @@ Home Page
 {% endblock title %}
 
 {% block content %}
+<br><br><br><br>
+<div class="content-section">
+    <form class="col-12" method="POST" action="">
+        {{ form.hidden_tag() }}
+        <div class="form-row">
+            {{ form.keyword(class="form-control col-sm-10", placeholder="Search Book/ASIN") }}
+            {{ form.type(class="selectpicker") }}
+            {{ form.submit(class="btn btn-outline-secondary") }}
+        </div>
+    </form>
+</div>
+<br><br><br><br><br>
+<div id="check"></div>
 <nav aria-label="Page navigation example">
   <ul class="pagination" style="width:100%; overflow-x: scroll; ">
 <!--    <li class="page-item">-->
