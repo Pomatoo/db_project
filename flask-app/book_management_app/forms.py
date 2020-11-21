@@ -47,3 +47,16 @@ class addBookForm(FlaskForm):
         book_meta = mongo.db.book_meta.find_one({'asin': asin})
         if not book_meta:
             raise ValidationError('That ASIN exist. Please choose a different one.')
+
+class editBookForm(FlaskForm):
+    asin = StringField('ASIN', validators=[DataRequired(), Length(min=1, max=100)])
+    Title = StringField('Title', validators=[DataRequired(), Length(min=1, max=100)])
+    Price = StringField('Price', validators=[DataRequired(), Length(min=1, max=100)])
+    Description = StringField('Description', validators=[DataRequired(), Length(min=1, max=100)])
+    ImageURL = StringField('ImageURL', validators=[DataRequired(), Length(min=1, max=100)])
+    submit = SubmitField('EditBook')
+
+    def validate_asin(self, asin):
+        book_meta = mongo.db.book_meta.find_one({'asin': asin})
+        if not book_meta:
+            raise ValidationError('That ASIN exist. Please choose a different one.')

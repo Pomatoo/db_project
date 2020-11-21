@@ -1,6 +1,6 @@
 from book_management_app import app, db, mongo, bcrypt, login_manager
 from book_management_app.models import Review, User, Book
-from book_management_app.forms import RegistrationForm, LoginForm, SearchForm, addBookForm
+from book_management_app.forms import RegistrationForm, LoginForm, SearchForm, addBookForm, editBookForm
 from flask import request, render_template, redirect, flash, url_for
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -11,27 +11,32 @@ from flask_login import login_user, current_user, logout_user, login_required
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-
-@app.route("/", methods=['GET', 'POST'])
-def home():
+@app.route("/", defaults={'page_num': 1, 'page_size': 12})
+@app.route("/<page_num>/<page_size>", methods=['GET', 'POST'])
+def home(page_size, page_num):
     form = SearchForm()
-    book_meta = mongo.db.book_meta.find()
-    i = 0
-    books_list = []
+    page_num = int(page_num)
+    page_size = int(page_size)
+    page_numbers = list(range(1, 4000))
+    skips = page_size * (page_num - 1)
+    book_meta = mongo.db.book_meta.find().skip(skips).limit(page_size)
+    # i = 0
+    book_list = []
     for book in book_meta:
-        i += 1
-        if i == 10:
-            break
-        print(book)
-        books_list.append(book)
+        #     i += 1
+        #     if i == 10:
+        #         break
+        book_list.append(book)
 
     if form.validate_on_submit():
         print(form.keyword.data)
         print(form.type.data)
+
         if form.type.data.lower() == 'asin':
+
             book_meta1 = mongo.db.book_meta.find_one({'asin': form.keyword.data})
             print('Book meta %s ' % book_meta1)
-            if book_meta1:
+            if book_meta:
                 print(book_meta1)
                 reviews = Review.query.filter_by(asin=form.keyword.data).all()
                 print(type(reviews))
@@ -44,7 +49,8 @@ def home():
         elif form.type.data.lower() == 'book':
             pass
 
-    return render_template('home.html', form=form, books=books_list)
+    return render_template('home.html', form=form, books=book_list, page_numbers=page_numbers, page_size=page_size,
+                           page_num=page_num)
 
 
 @app.route("/about", methods=['GET'])
@@ -52,12 +58,23 @@ def about():
     return render_template('about.html')
 
 
-@app.route("/management", methods=['GET'])
+@app.route("/management", defaults={'page_num': 1, 'page_size': 12})
+@app.route("/management/<page_num>/<page_size>", methods=['GET', 'POST'])
 @login_required
-def management():
+def management(page_size, page_num):
     if current_user.username == 'admin':
+        page_num = int(page_num)
+        page_size = int(page_size)
+        page_numbers = list(range(1, 4000))
+        skips = page_size * (page_num - 1)
+        book_meta = mongo.db.book_meta.find().skip(skips).limit(page_size)
+        book_list = []
+        for book in book_meta:
 
-        return render_template('management.html')
+            book_list.append(book)
+
+        return render_template('management.html', books=book_list, page_numbers=page_numbers, page_size=page_size,
+                           page_num=page_num)
     else:
         flash('Please login as admin and try again', 'danger')
         return render_template('403.html')
@@ -113,7 +130,7 @@ def addbook():
     else:
         print("Add book failed")
 
-    return render_template('add-book.html', title='Add Book', form=form)
+    return render_template('add-book.html', title='Add Book', form=form, legend='Add Book')
 
 
 @app.route("/review/<asin>", methods=['GET', 'POST'])
@@ -129,6 +146,32 @@ def reviews(asin):
         for i in review:
             print(i.review_text)
 
-
-
     return render_template('review.html', title='Review', bookmeta=book_meta1, reviews=review)
+
+@app.route("/editbook/<asin>", methods=['GET', 'POST'])
+def editbook(asin):
+    print('0000')
+    form = editBookForm()
+    print('11111')
+    book_meta = mongo.db.book_meta.find_one({'asin': asin})
+    # book_list = []
+    # for book in book_meta:
+    #     book_list.append(book)
+    # if book_meta:
+
+    # It does not enter this if statement
+    if form.validate_on_submit():
+        print('HERE0')
+        print(form.asin.data)
+        print(form.Title.data)
+        mongo.db.book_meta.insert({'asin': form.asin.data, 'title': form.Title.data,
+                                   'price': form.Price.data, 'description': form.Description.data,
+                                   'imUrl': form.ImageURL.data})
+        print('HERE')
+        return redirect(url_for('home'))
+
+    else:
+        print("Edit book failed")
+
+    print(book_meta)
+    return render_template('editbook.html', title='Edit Book', form=form, legend='Edit Book', book=book_meta)
