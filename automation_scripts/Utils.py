@@ -71,7 +71,8 @@ class WorkerThread(threading.Thread):
 
 class AwsManager(object):
 
-    def __init__(self, init_security_group_and_key=False):
+    def __init__(self, system_type, init_security_group_and_key=False):
+        self.system_type = system_type
         self.__config = ConfigParser()
         self.__config.read('aws_config.conf')
         params = ('aws_access_key_id', 'aws_secret_access_key', 'instance_type',

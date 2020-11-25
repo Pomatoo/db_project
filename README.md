@@ -36,11 +36,7 @@ API
 
 
 Questions for Profs:
-Login credentials, ssh key to instance (auto)?
-Instances specs /InstanceType(IMG id) is restricted
-Python libs: SqlAlchemy -  ORM framework allowed? 
-any changes on dataset during demo/grading?
-Add a new book (what parameters are required? ASIN, Author, Price)
+Image instances: 
 Sort by view based on rating? how about genres ?
 
 

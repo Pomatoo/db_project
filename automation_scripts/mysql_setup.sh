@@ -27,14 +27,21 @@ CREATE TABLE testDB.review(
 PRIMARY KEY (`id`),
 INDEX idx_asin (asin)
 );
+LOAD DATA LOCAL INFILE 'kindle_reviews.csv' INTO TABLE testDB.review FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS;
 CREATE TABLE testDB.user(
 `id` INT(11) NOT NULL AUTO_INCREMENT,
-`username` VARCHAR(255) NOT NULL,
-`password` VARCHAR(255) NOT NULL,
+`user_id` VARCHAR(255),
+`username` VARCHAR(255),
+`password` VARCHAR(255),
 PRIMARY KEY (`id`),
-INDEX idx_username (username)
+INDEX idx_user_id (user_id)
 );
-LOAD DATA LOCAL INFILE 'kindle_reviews.csv' INTO TABLE testDB.review FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS;
+INSERT INTO testDB.`user` (user_id, username)
+SELECT DISTINCT reviewer_id, reviewer_name
+FROM testDB.review;
+UPDATE testDB.`user`
+SET password = 'user'
+WHERE id=id;
 EOF
 sudo chmod 777 /etc/mysql/my.cnf
 sudo echo "bind-address = 0.0.0.0" >> /etc/alternatives/my.cnf

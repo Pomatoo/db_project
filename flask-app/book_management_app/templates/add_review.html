@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}
+    Add Review
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <legend class="border-bottom mb-4">Add Review</legend>
+        <br class="row">
+        <div class="metadata">
+            <img alt="Book Image"
+                 src= {{ bookmeta.imUrl }}>
+            <br>
+            <div class="Title">
+                <strong>Title: {{ bookmeta.title }}</strong>
+            </div>
+            <br>
+            <div class="ASIN">
+                <strong>ASIN: {{ bookmeta.asin }}</strong>
+            </div>
+        </div>
+        <div class="add-review-form">
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                <fieldset class="form-group">
+                    <legend class="border-bottom mb-4">Add Review</legend>
+                    <div class="row">
+                        <div class="form-group col-md-4">
+                            {{ form.score.label(class="form-control-label") }}
+                            {{ form.score(class="form-control form-control-lg") }}
+                        </div>
+                        <div class="form-group col-md-4">
+                            {{ form.helpful.label(class="form-control-label") }}
+                            {{ form.helpful(class="form-control form-control-lg") }}
+                        </div>
+                        <div class="form-group col-md-4">
+                            {{ form.total.label(class="form-control-label") }}
+                            {{ form.total(class="form-control form-control-lg") }}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.summary.label(class="form-control-label") }}
+                        {{ form.summary(class="form-control form-control-lg") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.review_text.label(class="form-control-label") }}
+                        {{ form.review_text(class="form-control form-control-lg") }}
+                    </div>
+                </fieldset>
+                <div class="form-group">
+                    {{ form.submit(class="btn btn-outline-info") }}
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}

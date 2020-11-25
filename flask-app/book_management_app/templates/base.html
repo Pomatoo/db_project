@@ -20,18 +20,22 @@
                 <a class="nav-link mr-4" href="{{ url_for('home') }}"> Home </a>
             </li>
             <li class="nav-item">
-
-                <a class="nav-link mr-4" href="{{ url_for('management') }}"> Book Management</a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link mr-4" href="{{ url_for('about') }}">About</a>
             </li>
-
+            {% if current_user.username == 'admin' %}
+                <li class="nav-item">
+                    <a class="nav-link mr-4" href="{{ url_for('management') }}"> Book Management</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link mr-4" href="{{ url_for('add_book') }}">Add Book</a>
+                </li>
+            {% endif %}
         </ul>
     </div>
     <form class="form-inline">
-
         {% if current_user.is_authenticated %}
+            <h4><span class="badge badge-pill badge-info">{{ current_user.username }}</span></h4>
+            &nbsp;&nbsp;&nbsp;&nbsp;
             <a class="btn btn-outline-success my-2 my-sm-0" type="submit" href="{{ url_for('logout') }}">Logout</a>
         {% else %}
             <a class="btn btn-outline-success my-2 my-sm-0" type="submit" href="{{ url_for('login') }}">Login</a>

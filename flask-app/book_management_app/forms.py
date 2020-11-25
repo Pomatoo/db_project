@@ -1,31 +1,26 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField
+from wtforms import StringField, PasswordField, SubmitField, SelectField, TextAreaField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from book_management_app.models import User
 from book_management_app import mongo
 
 
 class RegistrationForm(FlaskForm):
+    user_id = StringField('User ID', validators=[DataRequired(), Length(min=2, max=20)])
     username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Sign Up')
 
-    '''
-    Any methods with method name: validate_%s will be evoked when Form.validate_on_submit() is called
-    '''
-
-    def validate_username(self, username):
-        user = User.query.filter_by(username=username.data).first()
+    def validate_user_id(self, user_id):
+        user = User.query.filter_by(user_id=user_id.data).first()
         if user:
-            raise ValidationError('That username is taken. Please choose a different one.')
+            raise ValidationError('That user ID is taken. Please choose a different one.')
 
 
 class LoginForm(FlaskForm):
-    username = StringField('Username',
-                           validators=[DataRequired(), Length(min=2, max=20)])
+    user_id = StringField('User ID', validators=[DataRequired(), Length(min=2, max=20)])
     password = PasswordField('Password', validators=[DataRequired()])
-    remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
 
 
@@ -35,28 +30,33 @@ class SearchForm(FlaskForm):
     submit = SubmitField('Search')
 
 
-class addBookForm(FlaskForm):
+class AddReviewForm(FlaskForm):
+    summary = TextAreaField('Summary', validators=[DataRequired(), Length(min=1, max=100)])
+    score = SelectField('Score', choices=['5', '4', '3', '2', '1'])
+    helpful = SelectField('Helpful', choices=['5', '4', '3', '2', '1'])
+    total = SelectField('Total', choices=['5', '4', '3', '2', '1'])
+    review_text = TextAreaField('Review', validators=[DataRequired(), Length(min=1, max=100)])
+    submit = SubmitField('Add Review')
+
+
+class AddBookForm(FlaskForm):
     asin = StringField('ASIN', validators=[DataRequired(), Length(min=1, max=100)])
-    Title = StringField('Title', validators=[DataRequired(), Length(min=1, max=100)])
-    Price = StringField('Price', validators=[DataRequired(), Length(min=1, max=100)])
-    Description = StringField('Description', validators=[DataRequired(), Length(min=1, max=100)])
-    ImageURL = StringField('ImageURL', validators=[DataRequired(), Length(min=1, max=100)])
-    submit = SubmitField('AddBook')
+    title = StringField('Title', validators=[Length(min=1, max=1000)])
+    price = StringField('Price', validators=[Length(min=1, max=100)])
+    description = StringField('Description', validators=[Length(min=1, max=1000)])
+    image_url = StringField('ImageURL', validators=[Length(min=1, max=1000)])
+    submit = SubmitField('Add Book')
 
     def validate_asin(self, asin):
-        book_meta = mongo.db.book_meta.find_one({'asin': asin})
-        if not book_meta:
+        book_meta = mongo.db.book_meta.find_one({'asin': asin.data})
+        if book_meta:
             raise ValidationError('That ASIN exist. Please choose a different one.')
 
-class editBookForm(FlaskForm):
+
+class EditBookForm(FlaskForm):
     asin = StringField('ASIN', validators=[DataRequired(), Length(min=1, max=100)])
-    Title = StringField('Title', validators=[DataRequired(), Length(min=1, max=100)])
-    Price = StringField('Price', validators=[DataRequired(), Length(min=1, max=100)])
-    Description = StringField('Description', validators=[DataRequired(), Length(min=1, max=100)])
-    ImageURL = StringField('ImageURL', validators=[DataRequired(), Length(min=1, max=100)])
-    submit = SubmitField('EditBook')
-
-    def validate_asin(self, asin):
-        book_meta = mongo.db.book_meta.find_one({'asin': asin})
-        if not book_meta:
-            raise ValidationError('That ASIN exist. Please choose a different one.')
+    title = StringField('Title', validators=[Length(min=1, max=100)])
+    price = StringField('Price', validators=[Length(min=1, max=100)])
+    description = StringField('Description', validators=[Length(min=1, max=100)])
+    image_url = StringField('ImageURL', validators=[Length(min=1, max=100)])
+    submit = SubmitField('Apply')

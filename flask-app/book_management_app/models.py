@@ -17,13 +17,7 @@ class Review(db.Model):
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), unique=True, nullable=False)
-    password = db.Column(db.String(60), nullable=False)
+    username = db.Column(db.String(20), nullable=True)
+    user_id = db.Column(db.String(50), unique=True)
+    password = db.Column(db.String(60), nullable=True)
 
-
-class Book(object):
-    asin = ''
-    img_url = ''
-    price = ''
-    title = ''
-    description = ''

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Home Page
+Book Management Page
 {% endblock title %}
 
 {% block content %}
@@ -43,7 +43,7 @@ Home Page
         <div class="col-md-4">
             <div class="container">
                 <div class="book-image">
-                  <a href = "{{ url_for('editbook', asin=book.asin) }}">
+                  <a href = "{{ url_for('edit_book', asin=book.asin) }}">
                       <img alt="Book Image"
                          src={{ book.imUrl }}></a>
                     <div class="book-description">
