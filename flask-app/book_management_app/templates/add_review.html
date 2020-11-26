@@ -25,20 +25,11 @@
                 <fieldset class="form-group">
                     <legend class="border-bottom mb-4">Add Review</legend>
                     <div class="row">
-                        <div class="form-group col-md-4">
-                            {{ form.score.label(class="form-control-label") }}
-                            {{ form.score(class="form-control form-control-lg") }}
-                        </div>
-                        <div class="form-group col-md-4">
-                            {{ form.helpful.label(class="form-control-label") }}
-                            {{ form.helpful(class="form-control form-control-lg") }}
-                        </div>
-                        <div class="form-group col-md-4">
-                            {{ form.total.label(class="form-control-label") }}
-                            {{ form.total(class="form-control form-control-lg") }}
+                        <div class="form-group col-md-3">
+                            {{ form.overall.label(class="form-control-label") }}
+                            {{ form.overall(class="form-control form-control-lg") }}
                         </div>
                     </div>
-
                     <div class="form-group">
                         {{ form.summary.label(class="form-control-label") }}
                         {{ form.summary(class="form-control form-control-lg") }}

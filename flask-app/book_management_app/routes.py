@@ -1,17 +1,17 @@
 from book_management_app import app, db, mongo, bcrypt, login_manager
-from book_management_app.models import Review, User, Book
+from book_management_app.models import Review, User
 from book_management_app.forms import *
 from flask import request, render_template, redirect, flash, url_for
 from flask_login import login_user, current_user, logout_user, login_required
 from book_management_app.utils import *
-
+import time
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-@app.route("/", defaults={'page_num': 1, 'page_size': 12})
+@app.route("/", defaults={'page_num': 1, 'page_size': 12}, methods=['GET', 'POST'])
 @app.route("/<page_num>/<page_size>", methods=['GET', 'POST'])
 def home(page_size, page_num):
     page_num = int(page_num)
@@ -34,7 +34,7 @@ def home(page_size, page_num):
                 return redirect(url_for('reviews', asin=book_meta['asin']))
             else:
                 flash('Book %s not found' % form.keyword.data, 'danger')
-
+                return render_template('403.html')
     return render_template('home.html', form=form, books=book_list, page_numbers=page_numbers, page_size=page_size,
                            page_num=page_num, catagories=[1, 2, 3, 4, 5])
 
@@ -48,7 +48,6 @@ def about():
 @app.route("/management/<page_num>/<page_size>", methods=['GET', 'POST'])
 @login_required
 def management(page_size, page_num):
-
     if current_user.username != 'admin':
         return redirect(url_for('home'))
 
@@ -71,7 +70,7 @@ def management(page_size, page_num):
                 return redirect(url_for('edit_book', asin=book_meta['asin']))
             else:
                 flash('Book %s not found' % form.keyword.data, 'danger')
-
+                return render_template('403.html')
     return render_template('management.html', form=form, books=book_list, page_numbers=page_numbers,
                            page_size=page_size,
                            page_num=page_num)
@@ -116,11 +115,16 @@ def logout():
 @app.route("/add_book", methods=['GET', 'POST'])
 def add_book():
     form = AddBookForm()
+    print('add - book')
     if form.validate_on_submit():
+        print('adding')
         mongo.db.book_meta.insert({'asin': form.asin.data, 'title': form.title.data,
                                    'price': form.price.data, 'description': form.description.data,
-                                   'imUrl': form.image_url.data})
+                                   'imUrl': form.image_url.data, 'categories': [],
+                                   'related': {'also_bought': [], 'buy_after_review': []}
+                                   })
         flash('Book %s added successfully.' % form.asin.data, 'success')
+        print('added')
         return redirect(url_for('management'))
 
     return render_template('add_book.html', title='Add Book', form=form, legend='Add Book')
@@ -133,8 +137,7 @@ def reviews(asin):
         print(book_meta)
         review_list = Review.query.filter_by(asin=asin).all()
         print('reviews size : %s ' % len(review_list))
-        for i in review_list:
-            print(i.review_text)
+        print(review_list)
         return render_template('review.html', title='Review', bookmeta=book_meta, reviews=review_list)
     else:
         flash('Book %s not found' % asin, 'danger')
@@ -151,13 +154,21 @@ def add_review(asin):
             return render_template('add_review.html', title='Add Review', bookmeta=book_meta, form=form)
 
     if form.validate_on_submit():
-        print(asin)
-        print(current_user.username)
-        print(current_user.user_id)
-        print(form)
-        return redirect(url_for('reviews'))
-
-    return "<h1>add review</h1>"
+        new_review = Review(
+            asin=asin,
+            helpful='%s' % [0, 0],
+            overall=form.overall.data,
+            review_text=form.review_text.data,
+            review_time=time.strftime('%m %d, %y'),
+            reviewer_id=current_user.user_id,
+            reviewer_name=current_user.username,
+            summary=form.summary.data,
+            unix_review_time=int(time.time())
+        )
+        db.session.add(new_review)
+        db.session.commit()
+        flash('Dear %s, your review to %s is added successfully.' % (current_user.username, asin), 'success')
+        return redirect(url_for('reviews', asin=asin))
 
 
 @app.route("/edit_book/<asin>", methods=['GET', 'POST'])
@@ -196,6 +207,4 @@ def edit_book(asin):
 def test():
     return "<h1>test</h1>"
 
-
 # {"user_id":"", "HTTP_METHOD":"", "RESOURCE":""}
-

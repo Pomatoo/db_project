@@ -176,13 +176,15 @@ class AwsManager(object):
                 break
             sleep(3)
 
-        public_ip = self.__ec_client.describe_instances(
+        instance_details = self.__ec_client.describe_instances(
             InstanceIds=[instance_id]
-        )['Reservations'][0]['Instances'][0]['PublicIpAddress']
+        )
+        public_ip = instance_details['Reservations'][0]['Instances'][0]['PublicIpAddress']
+        private_ip = instance_details['Reservations'][0]['Instances'][0]['PrivateIpAddress']
 
         log('Instance is created, ip:%s, id:%s, key:%s, security-group:%s ' %
             (public_ip, instance_id, self.__access_key_name, self.__security_group_name))
-        return {'id': instance_id, 'ip': public_ip}
+        return {'id': instance_id, 'ip': public_ip, 'private_ip': private_ip}
 
     def __create_access_key(self):
         existing_key_paris = [key['KeyName'] for key in self.__ec_client.describe_key_pairs()['KeyPairs']]
@@ -258,8 +260,8 @@ class AwsManager(object):
 
 
 if __name__ == "__main__":
-    aws_manager = AwsManager('production', init_security_group_and_key=True)
-    # instance = aws_manager.create_an_instance()
+    aws_manager = AwsManager('production', init_security_group_and_key=False)
+    instance = aws_manager.create_an_instance()
     # log(instance)
     # breakpoint()
     # aws_manager = AwsManager()

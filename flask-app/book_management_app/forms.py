@@ -32,18 +32,16 @@ class SearchForm(FlaskForm):
 
 class AddReviewForm(FlaskForm):
     summary = TextAreaField('Summary', validators=[DataRequired(), Length(min=1, max=100)])
-    score = SelectField('Score', choices=['5', '4', '3', '2', '1'])
-    helpful = SelectField('Helpful', choices=['5', '4', '3', '2', '1'])
-    total = SelectField('Total', choices=['5', '4', '3', '2', '1'])
+    overall = SelectField('Overall', choices=['5', '4', '3', '2', '1'])
     review_text = TextAreaField('Review', validators=[DataRequired(), Length(min=1, max=100)])
     submit = SubmitField('Add Review')
 
 
 class AddBookForm(FlaskForm):
     asin = StringField('ASIN', validators=[DataRequired(), Length(min=1, max=100)])
-    title = StringField('Title', validators=[Length(min=1, max=1000)])
+    title = StringField('Title', validators=[Length(min=1, max=200)])
     price = StringField('Price', validators=[Length(min=1, max=100)])
-    description = StringField('Description', validators=[Length(min=1, max=1000)])
+    description = TextAreaField('Description', validators=[Length(min=1, max=5000)])
     image_url = StringField('ImageURL', validators=[Length(min=1, max=1000)])
     submit = SubmitField('Add Book')
 
