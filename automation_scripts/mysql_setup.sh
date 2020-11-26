@@ -36,10 +36,10 @@ CREATE TABLE testDB.user(
 PRIMARY KEY (`id`),
 INDEX idx_user_id (user_id)
 );
-INSERT INTO testDB.`user` (user_id, username)
+INSERT INTO testDB.user (user_id, username)
 SELECT DISTINCT reviewer_id, reviewer_name
 FROM testDB.review;
-UPDATE testDB.`user`
+UPDATE testDB.user
 SET password = 'user'
 WHERE id=id;
 EOF

@@ -71,15 +71,21 @@ class WorkerThread(threading.Thread):
 
 class AwsManager(object):
 
-    def __init__(self, system_type, init_security_group_and_key=False):
-        self.system_type = system_type
+    def __init__(self, system_type='production', init_security_group_and_key=False):
         self.__config = ConfigParser()
         self.__config.read('aws_config.conf')
+
+        # Check all parameters are set in configuration file.
         params = ('aws_access_key_id', 'aws_secret_access_key', 'instance_type',
                   'instance_ami', 'access_key_name', 'security_group_name',
                   'aws_educate', 'region_name')
+        configured_params = []
+        for section in self.__config.sections():
+            for param in self.__config.options(section):
+                configured_params.append(param)
+
         for param in params:
-            if param not in self.__config.options('aws-credentials'):
+            if param not in configured_params:
                 raise Exception('Parameter %s cannot be found in aws_config.conf' % param)
 
         self.__is_aws_educate = int(self.__config.get('aws-credentials', 'aws_educate'))
@@ -96,6 +102,13 @@ class AwsManager(object):
         self.__ec_client = boto3.client('ec2', **credentials)
         self.__access_key_name = self.__config.get('aws-credentials', 'access_key_name')
         self.__security_group_name = self.__config.get('aws-credentials', 'security_group_name')
+
+        if system_type == 'production':
+            self.instance_type = self.__config.get('production-system', 'instance_type')
+            self.instance_ami = self.__config.get('production-system', 'instance_ami')
+        elif system_type == 'analytics':
+            self.instance_type = self.__config.get('analytics-system', 'instance_type')
+            self.instance_ami = self.__config.get('analytics-system', 'instance_ami')
 
         if init_security_group_and_key:
             self.__create_security_group()
@@ -149,10 +162,10 @@ class AwsManager(object):
         """
         log('Creating Instance')
         ec2_instance = self.__ec_client.run_instances(
-            ImageId=self.__config.get('aws-credentials', 'instance_ami'),
+            ImageId=self.instance_ami,
             MinCount=1,
             MaxCount=1,
-            InstanceType=self.__config.get('aws-credentials', 'instance_type'),
+            InstanceType=self.instance_type,
             KeyName=self.__access_key_name,
             SecurityGroups=[self.__security_group_name]
         )
@@ -163,13 +176,15 @@ class AwsManager(object):
                 break
             sleep(3)
 
-        public_ip = self.__ec_client.describe_instances(
+        instance_details = self.__ec_client.describe_instances(
             InstanceIds=[instance_id]
-        )['Reservations'][0]['Instances'][0]['PublicIpAddress']
+        )
+        public_ip = instance_details['Reservations'][0]['Instances'][0]['PublicIpAddress']
+        private_ip = instance_details['Reservations'][0]['Instances'][0]['PrivateIpAddress']
 
         log('Instance is created, ip:%s, id:%s, key:%s, security-group:%s ' %
             (public_ip, instance_id, self.__access_key_name, self.__security_group_name))
-        return {'id': instance_id, 'ip': public_ip}
+        return {'id': instance_id, 'ip': public_ip, 'private_ip': private_ip}
 
     def __create_access_key(self):
         existing_key_paris = [key['KeyName'] for key in self.__ec_client.describe_key_pairs()['KeyPairs']]
@@ -245,8 +260,8 @@ class AwsManager(object):
 
 
 if __name__ == "__main__":
-    # aws_manager = AwsManager(init_security_group_and_key=True)
-    # instance = aws_manager.create_an_instance()
+    aws_manager = AwsManager('production', init_security_group_and_key=False)
+    instance = aws_manager.create_an_instance()
     # log(instance)
     # breakpoint()
     # aws_manager = AwsManager()
@@ -265,17 +280,17 @@ if __name__ == "__main__":
     # aws_manager.remove_security_group('Database_project')
 
     # Send cmd over SSH
-    from fabric import Connection
-
-    c = Connection(
-        host='3.233.219.244',
-        user="ubuntu",
-        connect_kwargs={
-            "key_filename": "databaseProjectKeyGroup14.pem",
-        }
-    )
-
-    # c.put('./web_config.conf')
-    c.run('rm -rf *.conf')
-    # ssh_instance.put('web_config.conf', '~/')
-    c.run('ls -la')
+    # from fabric import Connection
+    #
+    # c = Connection(
+    #     host='3.233.219.244',
+    #     user="ubuntu",
+    #     connect_kwargs={
+    #         "key_filename": "databaseProjectKeyGroup14.pem",
+    #     }
+    # )
+    #
+    # # c.put('./web_config.conf')
+    # c.run('rm -rf *.conf')
+    # # ssh_instance.put('web_config.conf', '~/')
+    # c.run('ls -la')
