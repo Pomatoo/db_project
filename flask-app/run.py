@@ -16,7 +16,7 @@ Tree structure
 
 if __name__ == '__main__':
     HOST = '127.0.0.1'
-    PORT = 8081
+    PORT = 8080
     if len(argv) == 2 and argv[1] == 'deploy':
         HOST = '0.0.0.0'
 
