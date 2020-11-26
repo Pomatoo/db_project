@@ -1,5 +1,5 @@
 from book_management_app import app, db, mongo, bcrypt, login_manager
-from book_management_app.models import Review, User, Book
+from book_management_app.models import Review, User
 from book_management_app.forms import *
 from flask import request, render_template, redirect, flash, url_for
 from flask_login import login_user, current_user, logout_user, login_required
