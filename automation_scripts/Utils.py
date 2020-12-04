@@ -30,7 +30,7 @@ def get_ssh_client(ip, key):
 
 
 class WorkerThread(threading.Thread):
-    def __init__(self, _aws_manager, thread_name, sh_file):
+    def __init__(self, _aws_manager, thread_name, sh_file=None):
         threading.Thread.__init__(self)
         self.thread_name = thread_name
         self.sh_file = sh_file
@@ -49,9 +49,12 @@ class WorkerThread(threading.Thread):
                 break
             sleep(30)
             log('Thread-%s instance is still initializing ' % self.thread_name)
-        log('Thread-%s instance is initialized, SSH to instance' % self.thread_name)
+
         while 1:
+            if not self.sh_file:
+                break
             try:
+                log('Thread-%s instance is initialized, SSH to instance' % self.thread_name)
                 ssh_instance = get_ssh_client(new_instance['ip'], self.aws_manager.get_access_key_name())
                 ssh_instance.put(self.sh_file)
                 ssh_instance.run('chmod 777 ./%s' % self.sh_file)
@@ -60,8 +63,8 @@ class WorkerThread(threading.Thread):
                 print(e)
                 sleep(5)
             else:
+                ssh_instance.close()
                 break
-        ssh_instance.close()
 
     def run(self):
         log('Running Thread-%s' % self.thread_name)
@@ -106,10 +109,31 @@ class AwsManager(object):
         if system_type == 'production':
             self.instance_type = self.__config.get('production-system', 'instance_type')
             self.instance_ami = self.__config.get('production-system', 'instance_ami')
+            self.permissions = [
+                {'IpProtocol': 'tcp',
+                 'FromPort': 8080,
+                 'ToPort': 8080,
+                 'IpRanges': [{'CidrIp': '0.0.0.0/0'}]},
+                {'IpProtocol': 'tcp',
+                 'FromPort': 22,
+                 'ToPort': 22,
+                 'IpRanges': [{'CidrIp': '0.0.0.0/0'}]},
+                {'IpProtocol': 'tcp',
+                 'FromPort': 27017,
+                 'ToPort': 27017,
+                 'IpRanges': [{'CidrIp': '0.0.0.0/0'}]},
+                {'IpProtocol': 'tcp',
+                 'FromPort': 3306,
+                 'ToPort': 3306,
+                 'IpRanges': [{'CidrIp': '0.0.0.0/0'}]}
+            ]
         elif system_type == 'analytics':
             self.instance_type = self.__config.get('analytics-system', 'instance_type')
             self.instance_ami = self.__config.get('analytics-system', 'instance_ami')
-
+            self.permissions = [{'IpProtocol': 'tcp',
+                                 'FromPort': 0,
+                                 'ToPort': 65535,
+                                 'IpRanges': [{'CidrIp': '0.0.0.0/0'}]}]
         if init_security_group_and_key:
             self.__create_security_group()
             self.__create_access_key()
@@ -167,7 +191,17 @@ class AwsManager(object):
             MaxCount=1,
             InstanceType=self.instance_type,
             KeyName=self.__access_key_name,
-            SecurityGroups=[self.__security_group_name]
+            SecurityGroups=[self.__security_group_name],
+            BlockDeviceMappings=[
+                {
+                    'DeviceName': '/dev/sda1',
+                    'Ebs': {
+                        'DeleteOnTermination': True,
+                        'VolumeSize': 32,
+                        'VolumeType': 'standard',
+                    }
+                }
+            ]
         )
         instance_id = ec2_instance['Instances'][0]['InstanceId']
         sleep(10)
@@ -233,24 +267,7 @@ class AwsManager(object):
 
             data = self.__ec_client.authorize_security_group_ingress(
                 GroupId=group_id,
-                IpPermissions=[
-                    {'IpProtocol': 'tcp',
-                     'FromPort': 8080,
-                     'ToPort': 8080,
-                     'IpRanges': [{'CidrIp': '0.0.0.0/0'}]},
-                    {'IpProtocol': 'tcp',
-                     'FromPort': 22,
-                     'ToPort': 22,
-                     'IpRanges': [{'CidrIp': '0.0.0.0/0'}]},
-                    {'IpProtocol': 'tcp',
-                     'FromPort': 27017,
-                     'ToPort': 27017,
-                     'IpRanges': [{'CidrIp': '0.0.0.0/0'}]},
-                    {'IpProtocol': 'tcp',
-                     'FromPort': 3306,
-                     'ToPort': 3306,
-                     'IpRanges': [{'CidrIp': '0.0.0.0/0'}]}
-                ])
+                IpPermissions=self.permissions)
             log('Ingress Successfully Set %s' % data)
 
         except ClientError as e:

@@ -5,5 +5,4 @@ git clone "https://github.com/Pomatoo/db_project.git"
 python3 -m venv ~/db_project/flask-app/venv
 source ~/db_project/flask-app/venv/bin/activate
 pip3 install --upgrade pip
-pip3 install -r ~/db_project/flask-app/requirements
 pip3 install mysqlclient PyMySQL pymongo boto3 Flask Flask-WTF Flask-Bcrypt Flask-Login Flask-PyMongo Flask-SQLAlchemy fabric WTForms

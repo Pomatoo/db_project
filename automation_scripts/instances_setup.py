@@ -2,16 +2,16 @@ from Utils import *
 import json
 
 log('Instances set up, ETA 10 mins')
-aws_manager = AwsManager(init_security_group_and_key=False, system_type='production')
+aws_manager = AwsManager(init_security_group_and_key=True, system_type='production')
 
 to_be_logged = {'created_instances': [],
                 'access_key_name': aws_manager.get_access_key_name(),
                 'security_group_name': aws_manager.get_security_group_name()
                 }
 
-mysql_worker = WorkerThread(aws_manager, 'MySQL', 'mysql_setup.sh')
-mongo_worker = WorkerThread(aws_manager, 'Mongo', 'mongo_setup.sh')
-web_worker = WorkerThread(aws_manager, 'Web', 'web_setup.sh')
+mysql_worker = WorkerThread(aws_manager, 'MySQL', 'production_scripts/mysql_setup.sh')
+mongo_worker = WorkerThread(aws_manager, 'Mongo', 'production_scripts/mongo_setup.sh')
+web_worker = WorkerThread(aws_manager, 'Web', 'production_scripts/web_setup.sh')
 
 mysql_worker.start()
 mongo_worker.start()
