@@ -9,9 +9,9 @@ to_be_logged = {'created_instances': [],
                 'security_group_name': aws_manager.get_security_group_name()
                 }
 
-mysql_worker = WorkerThread(aws_manager, 'MySQL', 'production_scripts/mysql_setup.sh')
-mongo_worker = WorkerThread(aws_manager, 'Mongo', 'production_scripts/mongo_setup.sh')
-web_worker = WorkerThread(aws_manager, 'Web', 'production_scripts/web_setup.sh')
+mysql_worker = WorkerThread(aws_manager, 'MySQL', sh_file='production_scripts/mysql_setup.sh')
+mongo_worker = WorkerThread(aws_manager, 'Mongo', sh_file='production_scripts/mongo_setup.sh')
+web_worker = WorkerThread(aws_manager, 'Web', sh_file='web_setup.sh')
 
 mysql_worker.start()
 mongo_worker.start()
@@ -39,7 +39,7 @@ while 1:
     try:
         ssh_client = get_ssh_client(web_instance['ip'], aws_manager.get_access_key_name())
         ssh_client.put('web_config.conf')
-        ssh_client.put('run_app.sh')
+        ssh_client.put('./production_scripts/run_app.sh')
         ssh_client.run('chmod 777 ~/web_config.conf ~/run_app.sh')
         ssh_client.run('bash ~/run_app.sh')
     except:

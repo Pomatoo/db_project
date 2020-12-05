@@ -17,10 +17,10 @@ log('Number of data node: %s ' % num_of_datanode)
 datanode_list = []
 
 for i in range(num_of_datanode):
-    node = WorkerThread(aws_manager, 'data_node_%s' %i)
+    node = WorkerThread(aws_manager, 'data_node_%s' % i)
     datanode_list.append(node)
 
-name_node = WorkerThread(aws_manager, 'name_node', sh_file='./analytics_scripts/name_node.sh')
+name_node = WorkerThread(aws_manager, 'name_node', sh_file=['analytics_scripts', 'name_node.sh'])
 
 for node in datanode_list:
     node.start()
@@ -67,18 +67,22 @@ for data_node in datanode_list:
     data_node_private_ips += '%s ' % node_details['private_ip']
 
 # Set Up Name Node
-ssh_client_name_node.run('echo "export MASTER=\'%s\'" >> ~/.bashrc && source ~/.bashrc' % name_node.get_instance_details()['ip'])
-ssh_client_name_node.run('echo "export WORKERS=\'%s\'" >> ~/.bashrc && source ~/.bashrc' % data_node_private_ips)
-ssh_client_name_node.put('set_up_namenode.sh')
-ssh_client_name_node.run('./set_up_namenode.sh')
+# ssh_client_name_node.run(
+#     'echo "export MASTER=\'%s\'" >> ~/.bashrc && source ~/.bashrc' % name_node.get_instance_details()['ip'])
+# ssh_client_name_node.run('echo "export WORKERS=\'%s\'" >> ~/.bashrc && source ~/.bashrc' % data_node_private_ips)
+ssh_client_name_node.put('./analytics_scripts/set_up_namenode.sh')
+ssh_client_name_node.run("sed -i 's/export MASTER/export MASTER=%s/g' ./set_up_namenode.sh" % name_node.get_instance_details()['private_ip'])
+ssh_client_name_node.run("sed -i 's/export WORKERS/export WORKERS=\"%s\"/g' ./set_up_namenode.sh" % data_node_private_ips)
+ssh_client_name_node.run('chmod +x ./set_up_namenode.sh && ./set_up_namenode.sh')
 ssh_client_name_node.close()
+
 
 # Set Up Data Node
 for data_node in datanode_list:
     node_details = data_node.get_instance_details()
     ssh_client_data_node = get_ssh_client(node_details['ip'], aws_manager.get_access_key_name())
-    ssh_client_data_node.put('data_node.sh')
-    ssh_client_data_node.run('./data_node.sh')
+    ssh_client_data_node.put('./analytics_scripts/set_up_datanode.sh')
+    ssh_client_data_node.run('chmod +x ./set_up_datanode.sh && ./set_up_datanode.sh')
     ssh_client_data_node.close()
 
 # RUN
@@ -86,7 +90,6 @@ ssh_client_name_node = get_ssh_client(name_node.get_instance_details()['ip'], aw
 ssh_client_name_node.run('/opt/hadoop-3.3.0/sbin/start-dfs.sh && /opt/hadoop-3.3.0/sbin/start-yarn.sh')
 ssh_client_name_node.run('/opt/spark-3.0.1-bin-hadoop3.2/sbin/start-all.sh')
 ssh_client_name_node.close()
-
 
 # ssh ubuntu@35.153.98.254 -i myKey.pem "sudo cat /home/ubuntu/.ssh/id_rsa.pub" | ssh ubuntu@54.197.44.24 -i myKey.pem "sudo cat - | sudo tee -a /home/ubuntu/.ssh/authorized_keys"
 

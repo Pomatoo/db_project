@@ -1,3 +1,5 @@
+import traceback
+
 import boto3
 import os
 import json
@@ -51,15 +53,17 @@ class WorkerThread(threading.Thread):
             log('Thread-%s instance is still initializing ' % self.thread_name)
 
         while 1:
-            if not self.sh_file:
+            if self.sh_file is None:
                 break
             try:
                 log('Thread-%s instance is initialized, SSH to instance' % self.thread_name)
                 ssh_instance = get_ssh_client(new_instance['ip'], self.aws_manager.get_access_key_name())
-                ssh_instance.put(self.sh_file)
-                ssh_instance.run('chmod 777 ./%s' % self.sh_file)
-                ssh_instance.run('bash ./%s' % self.sh_file)
+                file_path = './%s/%s' % (self.sh_file[0], self.sh_file[1])
+                ssh_instance.put(file_path)
+                ssh_instance.run('chmod 777 ./%s' % self.sh_file[1])
+                ssh_instance.run('bash ./%s' % self.sh_file[1])
             except Exception as e:
+                traceback.print_exc()
                 print(e)
                 sleep(5)
             else:
@@ -109,31 +113,11 @@ class AwsManager(object):
         if system_type == 'production':
             self.instance_type = self.__config.get('production-system', 'instance_type')
             self.instance_ami = self.__config.get('production-system', 'instance_ami')
-            self.permissions = [
-                {'IpProtocol': 'tcp',
-                 'FromPort': 8080,
-                 'ToPort': 8080,
-                 'IpRanges': [{'CidrIp': '0.0.0.0/0'}]},
-                {'IpProtocol': 'tcp',
-                 'FromPort': 22,
-                 'ToPort': 22,
-                 'IpRanges': [{'CidrIp': '0.0.0.0/0'}]},
-                {'IpProtocol': 'tcp',
-                 'FromPort': 27017,
-                 'ToPort': 27017,
-                 'IpRanges': [{'CidrIp': '0.0.0.0/0'}]},
-                {'IpProtocol': 'tcp',
-                 'FromPort': 3306,
-                 'ToPort': 3306,
-                 'IpRanges': [{'CidrIp': '0.0.0.0/0'}]}
-            ]
+
         elif system_type == 'analytics':
             self.instance_type = self.__config.get('analytics-system', 'instance_type')
             self.instance_ami = self.__config.get('analytics-system', 'instance_ami')
-            self.permissions = [{'IpProtocol': 'tcp',
-                                 'FromPort': 0,
-                                 'ToPort': 65535,
-                                 'IpRanges': [{'CidrIp': '0.0.0.0/0'}]}]
+
         if init_security_group_and_key:
             self.__create_security_group()
             self.__create_access_key()
@@ -267,7 +251,10 @@ class AwsManager(object):
 
             data = self.__ec_client.authorize_security_group_ingress(
                 GroupId=group_id,
-                IpPermissions=self.permissions)
+                IpPermissions=[{'IpProtocol': 'tcp',
+                                'FromPort': 0,
+                                'ToPort': 65535,
+                                'IpRanges': [{'CidrIp': '0.0.0.0/0'}]}])
             log('Ingress Successfully Set %s' % data)
 
         except ClientError as e:
@@ -277,8 +264,8 @@ class AwsManager(object):
 
 
 if __name__ == "__main__":
-    aws_manager = AwsManager('production', init_security_group_and_key=False)
-    instance = aws_manager.create_an_instance()
+    # aws_manager = AwsManager('production', init_security_group_and_key=False)
+    # instance = aws_manager.create_an_instance()
     # log(instance)
     # breakpoint()
     # aws_manager = AwsManager()
@@ -297,17 +284,21 @@ if __name__ == "__main__":
     # aws_manager.remove_security_group('Database_project')
 
     # Send cmd over SSH
-    # from fabric import Connection
-    #
-    # c = Connection(
-    #     host='3.233.219.244',
-    #     user="ubuntu",
-    #     connect_kwargs={
-    #         "key_filename": "databaseProjectKeyGroup14.pem",
-    #     }
-    # )
-    #
-    # # c.put('./web_config.conf')
-    # c.run('rm -rf *.conf')
-    # # ssh_instance.put('web_config.conf', '~/')
-    # c.run('ls -la')
+    from fabric import Connection
+
+    c = Connection(
+        host='34.231.244.35',
+        user="ubuntu",
+        connect_kwargs={
+            "key_filename": "databaseProjectKeyGroup14.pem",
+        }
+    )
+
+    # c.put('./web_config.conf')
+    # c.run('for h in $WORKERS ; do scp -o StrictHostKeyChecking=no hadoop-3.3.0.tgz $h:.; done;')
+    # c.run('for i in ${WORKERS}; do scp -o StrictHostKeyChecking=no spark-3.0.1-bin-hadoop3.2.tgz $i:./spark-3.0.1-bin-hadoop3.2.tgz; done')
+    c.run("sed -i 's/export WORKERS/export WORKERS=\"%s\"/g' ./set_up_namenode.sh" % '172.31.72.97')
+    # c.run('bash ./send.sh')
+    c.run('cat ./set_up_namenode.sh')
+    c.close()
+

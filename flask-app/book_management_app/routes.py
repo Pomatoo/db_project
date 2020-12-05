@@ -7,19 +7,20 @@ from book_management_app.utils import *
 import time
 from datetime import datetime
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-#@app.after_request
-#def log_request(response):
+
+# @app.after_request
+# def log_request(response):
 #    response.direct_passthrough = False
 #    timestamp = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 #    body = response.data.decode('utf-8')
 #    status_code = response.status_code
 #   mongo.db.web_logs.insert({'Time': timestamp, 'Body':body, 'Method':request.method,
 #                              'Path':request.full_path, 'Status_code': status_code})
-
 
 
 @app.route("/", defaults={'page_num': 1, 'page_size': 12}, methods=['GET', 'POST'])
@@ -31,9 +32,9 @@ def home(page_size, page_num):
     skips = page_size * (page_num - 1)
     book_meta = mongo.db.book_meta.find().skip(skips).limit(page_size)
     book_list = []
-    #print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+    # print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
     mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-                              'Request':request.method,'Path':request.full_path, 'Response':200})
+                              'Request': request.method, 'Path': request.full_path, 'Response': 200})
 
     for book in book_meta:
         book_list.append(book)
@@ -61,7 +62,7 @@ def home(page_size, page_num):
 @app.route("/about", methods=['GET'])
 def about():
     mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-                              'Request':request.method,'Path':request.full_path, 'Response':200})
+                              'Request': request.method, 'Path': request.full_path, 'Response': 200})
     return render_template('about.html')
 
 
@@ -72,7 +73,7 @@ def management(page_size, page_num):
     if current_user.username != 'admin':
         return redirect(url_for('home'))
     mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-                              'Request':request.method,'Path':request.full_path, 'Response':200})
+                              'Request': request.method, 'Path': request.full_path, 'Response': 200})
     form = SearchForm()
     page_num = int(page_num)
     page_size = int(page_size)
@@ -108,7 +109,7 @@ def register():
         return redirect(url_for('home'))
     form = RegistrationForm()
     mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-                              'Request':request.method,'Path':request.full_path, 'Response':200})
+                              'Request': request.method, 'Path': request.full_path, 'Response': 200})
     if form.validate_on_submit():
         user = User(user_id=form.user_id.data, username=form.username.data, password=form.password.data)
         db.session.add(user)
@@ -126,7 +127,7 @@ def login():
         return redirect(url_for('home'))
     form = LoginForm()
     mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-                              'Request':request.method,'Path':request.full_path, 'Response':200})
+                              'Request': request.method, 'Path': request.full_path, 'Response': 200})
     if form.validate_on_submit():
         user = User.query.filter_by(user_id=form.user_id.data).first()
         if user and user.password == form.password.data:
@@ -146,7 +147,7 @@ def login():
 def logout():
     logout_user()
     mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-                              'Request':request.method,'Path':request.full_path, 'Response':302})
+                              'Request': request.method, 'Path': request.full_path, 'Response': 302})
     return redirect(url_for('home'))
 
 
@@ -155,7 +156,7 @@ def add_book():
     form = AddBookForm()
     print('add - book')
     mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-                              'Request':request.method,'Path':request.full_path, 'Response':200})
+                              'Request': request.method, 'Path': request.full_path, 'Response': 200})
     if form.validate_on_submit():
         print('adding')
         mongo.db.book_meta.insert({'asin': form.asin.data, 'title': form.title.data,
@@ -176,7 +177,7 @@ def add_book():
 def reviews(asin):
     book_meta = mongo.db.book_meta.find_one({'asin': asin})
     mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-                              'Request':request.method,'Path':request.full_path, 'Response':200})
+                              'Request': request.method, 'Path': request.full_path, 'Response': 200})
     if book_meta:
         print(book_meta)
         review_list = Review.query.filter_by(asin=asin).all()
@@ -190,7 +191,6 @@ def reviews(asin):
         return render_template('403.html')
 
 
-
 @app.route("/add_review/<asin>", methods=['GET', 'POST'])
 @login_required
 def add_review(asin):
@@ -200,7 +200,7 @@ def add_review(asin):
         if book_meta:
             return render_template('add_review.html', title='Add Review', bookmeta=book_meta, form=form)
     mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-                              'Request':request.method,'Path':request.full_path, 'Response':200})
+                              'Request': request.method, 'Path': request.full_path, 'Response': 200})
     if form.validate_on_submit():
         new_review = Review(
             asin=asin,
@@ -225,7 +225,7 @@ def add_review(asin):
 def edit_book(asin):
     form = EditBookForm()
     mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-                              'Request':request.method,'Path':request.full_path, 'Response':200})
+                              'Request': request.method, 'Path': request.full_path, 'Response': 200})
     if request.method == "GET":
         book_meta = mongo.db.book_meta.find_one({'asin': asin})
         if book_meta:

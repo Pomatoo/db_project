@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+export MASTER
+export WORKERS
 echo -e "<?xml version=\"1.0\"?>
 <?xml-stylesheet type=\"text/xsl\" href=\"configuration.xsl\"?>
 <\x21-- Put site-specific property overrides in this file. -->
@@ -103,26 +105,12 @@ tar czvf spark-3.0.1-bin-hadoop3.2.tgz spark-3.0.1-bin-hadoop3.2/
 for i in ${WORKERS}; do scp -o StrictHostKeyChecking=no spark-3.0.1-bin-hadoop3.2.tgz $i:./spark-3.0.1-bin-hadoop3.2.tgz; done
 sudo mv spark-3.0.1-bin-hadoop3.2 /opt/
 sudo chown -R ubuntu:ubuntu /opt/spark-3.0.1-bin-hadoop3.2
-# Set up Zeppelinf
-#cp zeppelin-0.9.0-preview2-bin-all/conf/zeppelin-env.sh.template zeppelin-0.9.0-preview2-bin-all/conf/zeppelin-env.sh
-#echo -e "
-#export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-#export HADOOP_HOME=/opt/hadoop-3.3.0
-#export SPARK_HOME=/opt/spark-3.0.1-bin-hadoop3.2
-#export HADOOP_CONF_DIR=\${HADOOP_HOME}/etc/hadoop
-#export PYSPARK_PYTHON=python3
-#export MASTER=yarn-client
-#" >> zeppelin-0.9.0-preview2-bin-all/conf/zeppelin-env.sh
-#cp zeppelin-0.9.0-preview2-bin-all/conf/zeppelin-site.xml.template zeppelin-0.9.0-preview2-bin-all/conf/zeppelin-site.xml
-#sed -i "s/<value>127.0.0.1<\/value>/<value>0.0.0.0<\/value>/g" zeppelin-0.9.0-preview2-bin-all/conf/zeppelin-site.xml
-#sed -i "s/<value>8080<\/value>/<value>9090<\/value>/g" zeppelin-0.9.0-preview2-bin-all/conf/zeppelin-site.xml
-#sed -i "s/<value>8443<\/value>/<value>9443<\/value>/g" zeppelin-0.9.0-preview2-bin-all/conf/zeppelin-site.xml
-#sudo mv zeppelin-0.9.0-preview2-bin-all /opt/
-#sudo chown -R ubuntu:ubuntu /opt/zeppelin-0.9.0-preview2-bin-all
-echo "export PATH="$PATH:/opt/sqoop-1.4.7/bin:/opt/hadoop-3.3.0/bin:/opt/hadoop-3.3.0/sbin"" >> ~/.bashrc && source ~/.bashrc
+echo "export PATH=$PATH:/opt/sqoop-1.4.7/bin:/opt/hadoop-3.3.0/bin:/opt/hadoop-3.3.0/sbin" >> ~/.bashrc && source ~/.bashrc
+mkdir ~/result
+cd ~/result && nohup python3 -m http.server 8000 > /dev/null 2>&1 &
+#rm *gz
 #-o StrictHostKeyChecking=no
 #echo "export MASTER='value'" >> ~/.bashrc && source ~/.bashrc
 #echo "export WORKERS='value'" >> ~/.bashrc && source ~/.bashrc
 #sqoop import --connect jdbc:mysql://34.72.136.99/testDB?useSSL=false --table review  --columns "review_text" --username root --password iStD-So.043-Database -m 1
-rm *gz
 #/opt/hadoop-3.3.0/sbin/hdfs dfs -getmerge <hdfsDir> <localFile>
