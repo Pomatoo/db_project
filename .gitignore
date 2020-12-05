@@ -2,3 +2,5 @@ p50_venv/
 pc_venv/
 .idea
 automation_scripts/aws_config.conf
+automation_scripts/databaseProjectKeyGroup14.pem
+automation_scripts/id_rsa.pub
