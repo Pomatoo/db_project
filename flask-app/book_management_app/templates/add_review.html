@@ -3,21 +3,25 @@
     Add Review
 {% endblock %}
 {% block content %}
+<br>
     <div class="container">
-        <legend class="border-bottom mb-4">Add Review</legend>
+        <legend class="border-bottom mb-4">Book Details</legend>
         <br class="row">
         <div class="metadata">
             <img alt="Book Image"
                  src= {{ bookmeta.imUrl }}>
             <br>
             <div class="Title">
-                <strong>Title: {{ bookmeta.title }}</strong>
+                <strong>Title:</strong>
+                <p>{{ bookmeta.title }}</p>
             </div>
             <br>
             <div class="ASIN">
-                <strong>ASIN: {{ bookmeta.asin }}</strong>
+                <strong>ASIN:</strong>
+                <p>{{ bookmeta.asin }}</p>
             </div>
         </div>
+        <br>
         <div class="add-review-form">
             <form method="POST" action="">
                 {{ form.hidden_tag() }}

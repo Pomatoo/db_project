@@ -3,40 +3,45 @@
     Reviews
 {% endblock %}
 {% block content %}
+<br>
     <div class="container">
-        <legend class="border-bottom mb-4">Reviews</legend>
-        <a href="{{ url_for('add_review', asin=bookmeta.asin) }}">
-            <button type="button" class="btn btn-info btn-lg btn-block">Add Review</button>
-        </a>
+        <legend class="border-bottom mb-4">Book Details</legend>
+<!--        <a href="{{ url_for('add_review', asin=bookmeta.asin) }}">-->
+<!--            <button type="button" class="btn btn-info btn-lg btn-block">Add Review</button>-->
+<!--        </a>-->
         <br class="row">
         <div class="metadata">
             <img alt="Book Image"
                  src= {{ bookmeta.imUrl }}>
             <br>
             <div class="title">
-                <strong>Title: {{ bookmeta.title }}</strong>
+                <strong>Title:</strong>
+                <p>{{ bookmeta.title }}</p>
             </div>
             <br>
             <div class="ASIN">
-                <strong>ASIN: {{ bookmeta.asin }}</strong>
+                <strong>ASIN:</strong>
+                <p>{{ bookmeta.asin }}</p>
             </div>
             <br>
             <div class="categories">
-                <strong>Categories: {{ bookmeta.categories }}</strong>
+                <strong>Categories:</strong>
+                <p>{{ bookmeta.categories }}</p>
             </div>
             <br>
             <div class="description">
-                <strong>Description:
+                <strong>Description:</strong>
                     <p>{{ bookmeta.description }}</p>
                 </strong>
             </div>
             <br>
             <div class="price">
-                <i>Price: {{ bookmeta.price }}</i>
+                <strong>Price:</strong>
+                <p>{{ bookmeta.price }}</p>
             </div>
             <br>
             <div class="related">
-                <strong>Also Viewed:
+                <strong>Customers who viewed this item also viewed:
                     <div class="row">
                         {% for asin in bookmeta.related.also_viewed %}
                             <div class="col-md-2">
@@ -50,7 +55,7 @@
             </div>
             <br>
             <div class="buy after viewing">
-                <strong>Buy After Viewing:
+                <strong>Customers who bought this item also bought:
                     <div class="row">
                         {% for asin in bookmeta.related.buy_after_viewing %}
                             <div class="col-md-2">
@@ -68,23 +73,32 @@
                 {% for i in reviews %}
                     <div class="container">
                         <div class="Reviewer Name">
-                            <strong>Reviewer: {{ i.reviewer_name }}</strong>
+                            <strong>Reviewer:</strong>
+                            <p>{{ i.reviewer_name }}</p>
                         </div>
                         <div class="summary">
-                            <strong>Summary: {{ i.summary }}</strong>
+                            <strong>Summary:</strong>
+                            <p>{{ i.summary }}</p>
                         </div>
                         <div class="Rating">
-                            <strong>Score: {{ i.overall }}/5</strong>
+                            <strong>Score:</strong>
+                            <p>{{ i.overall }}/5</p>
                         </div>
                         <div class="Review Time">
-                            <strong>Time of Review: {{ i.review_time }}</strong>
+                            <strong>Time of Review:</strong>
+                            <p>{{ i.review_time }}</p>
                         </div>
                         <div class="helpful">
-                            <strong>[Helpful, Total]: {{ i.helpful }}</strong>
+                            <strong>[Helpful, Total]: </strong>
+                            <p>{{ i.helpful }}</p>
                         </div>
                         <div class="Review Text">
-                            <p>Review: {{ i.review_text }}</p>
+                            <strong>Review:</strong>
+                            <p>{{ i.review_text }}</p>
                         </div>
+                        <a href="{{ url_for('add_review', asin=bookmeta.asin) }}">
+            <button type="button" class="btn btn-info btn-lg btn-block">Add Review</button>
+        </a>
                         <hr>
                     </div>
                     <br>

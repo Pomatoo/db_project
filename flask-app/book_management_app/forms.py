@@ -34,7 +34,7 @@ class SearchForm(FlaskForm):
 
 class AddReviewForm(FlaskForm):
     summary = TextAreaField('Summary', validators=[DataRequired(), Length(min=1, max=100)])
-    overall = SelectField('Overall', choices=['5', '4', '3', '2', '1'])
+    overall = SelectField('Overall Rating', choices=['5', '4', '3', '2', '1'])
     review_text = TextAreaField('Review', validators=[DataRequired(), Length(min=1, max=100)])
     submit = SubmitField('Add Review')
 

@@ -4,19 +4,30 @@
 {% endblock title %}
 {% block content %}
     <br><br>
-    <div class="content-section">
-        <form class="col-12" method="POST" action="">
+<form class="col-12" method="POST" action="">
             {{ form.hidden_tag() }}
             <div class="form-row">
-                {{ form.keyword(class="form-control col-sm-10", placeholder="Search Book/ASIN") }}
-                {{ form.type(class="selectpicker") }}
-                {{ form.submit(class="btn btn-outline-secondary") }}
+                {{ form.keyword(class="form-control col-sm-10 ml-5", placeholder="Search Book/ASIN") }}
+                {{ form.type(class="btn btn-info dropdown-toggle") }}
+<!--                {{ form.submit(class="btn btn-outline-secondary") }}-->
+<!--                <a class="btn" href={{ url_for('reviews', asin = asin) }}-->
+<!--                <button class="btn" type="submit">I'm Feeling Lucky</button>-->
+<!--                <button type="button" class="btn btn-outline-secondary">I'm Feeling Lucky</button>-->
             </div>
-        </form>
-    </div>
-    <br><br><br><br><br>
-    <div id="check"></div>
+            </center>
 
+
+        <br>
+        <center>
+{{ form.submit(class="btn btn-outline-secondary rounded-circle mr-1") }}
+            </form>
+<!--<a class="btn btn-secondary rounded-circle" href={{ url_for('reviews', asin = asin) }}>I'm Feeling Lucky</a>-->
+<br>
+            </center>
+    <br><br>
+
+    <div id="check"></div>
+<h1 style="color:#2E86C1">Book Management</h1>
     <div class="container">
         <div class="row">
             {% for book in books %}
