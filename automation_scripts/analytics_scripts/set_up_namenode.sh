@@ -113,4 +113,3 @@ cd ~/result && nohup python3 -m http.server 8000 > /dev/null 2>&1 &
 #echo "export MASTER='value'" >> ~/.bashrc && source ~/.bashrc
 #echo "export WORKERS='value'" >> ~/.bashrc && source ~/.bashrc
 #sqoop import --connect jdbc:mysql://34.72.136.99/testDB?useSSL=false --table review  --columns "review_text" --username root --password iStD-So.043-Database -m 1
-#/opt/hadoop-3.3.0/sbin/hdfs dfs -getmerge <hdfsDir> <localFile>

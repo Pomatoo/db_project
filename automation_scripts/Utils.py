@@ -286,8 +286,8 @@ if __name__ == "__main__":
     # Send cmd over SSH
     from fabric import Connection
 
-    c = Connection(
-        host='34.231.244.35',
+    ssh_client_name_node = Connection(
+        host='3.238.251.228',
         user="ubuntu",
         connect_kwargs={
             "key_filename": "databaseProjectKeyGroup14.pem",
@@ -297,8 +297,17 @@ if __name__ == "__main__":
     # c.put('./web_config.conf')
     # c.run('for h in $WORKERS ; do scp -o StrictHostKeyChecking=no hadoop-3.3.0.tgz $h:.; done;')
     # c.run('for i in ${WORKERS}; do scp -o StrictHostKeyChecking=no spark-3.0.1-bin-hadoop3.2.tgz $i:./spark-3.0.1-bin-hadoop3.2.tgz; done')
-    c.run("sed -i 's/export WORKERS/export WORKERS=\"%s\"/g' ./set_up_namenode.sh" % '172.31.72.97')
-    # c.run('bash ./send.sh')
-    c.run('cat ./set_up_namenode.sh')
-    c.close()
+
+    ssh_client_name_node.put('./analytics_scripts/run_correlation.sh')
+    ssh_client_name_node.run("sed -i 's/$MYSQL_HOST/%s/g' ./run_correlation.sh" % '34.72.136.99')
+    ssh_client_name_node.run("sed -i 's/$MONGO_HOST/%s/g' ./run_correlation.sh" % '34.72.136.99')
+    ssh_client_name_node.put('./analytics_scripts/correlation.py')
+    ssh_client_name_node.run('chmod 777 ./correlation.py')
+    ssh_client_name_node.run('chmod +x ./run_correlation.sh')
+    breakpoint()
+    ssh_client_name_node.run('./run_correlation.sh')
+    # c.run("sed -i 's/export WORKERS/export WORKERS=\"%s\"/g' ./set_up_namenode.sh" % '172.31.72.97')
+    # # c.run('bash ./send.sh')
+    # c.run('cat ./set_up_namenode.sh')
+    ssh_client_name_node.close()
 

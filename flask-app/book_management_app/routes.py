@@ -1,71 +1,45 @@
-from book_management_app import app, db, mongo, bcrypt, login_manager
-from book_management_app.models import Review, User
-from book_management_app.forms import *
+import random
+import time
+
 from flask import request, render_template, redirect, flash, url_for
 from flask_login import login_user, current_user, logout_user, login_required
+
+from book_management_app import app, db, login_manager
+from book_management_app.forms import *
+from book_management_app.models import Review
 from book_management_app.utils import *
-import time, random
+
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
 
+"""
+1.Home Page will display all books, books are split into different pages
+2.Select a random ASIN for "I'm Feeling Lucky"
+3.Handle Search form
+4.When user click on a book, it will redirect to book details (including reviews of this book) page
+"""
 @app.route("/", defaults={'page_num': 1, 'page_size': 12}, methods=['GET', 'POST'])
 @app.route("/<page_num>/<page_size>", methods=['GET', 'POST'])
 def home(page_size, page_num):
-    #random book function
-    random_book_list = []
-    random_book_meta = mongo.db.book_meta.find().skip(random.randint(0, 434702)).limit(1)
-    for book in random_book_meta:
-        random_book_list.append(book)
-    randombook = random_book_list[0]
-    randombookasin = randombook['asin']
+    mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+                              'Request': request.method, 'Path': request.full_path, 'Response': 200})
+
+    # Select a random ASIN from database, this ASIN will be returned when user click "Lucky" button
+    random_book_asin = mongo.db.book_meta.find().skip(random.randint(0, 434702)).limit(1)[0]['asin']
+
+    # Pagination
     page_num = int(page_num)
     page_size = int(page_size)
     page_numbers = list(range(1, 36300))
     skips = page_size * (page_num - 1)
-    #book_categories = mongo.db.book_meta.find({"categories":{$elemMatch:{$elemMatch:{$in:["Books"]}}}})
     book_meta = mongo.db.book_meta.find().skip(skips).limit(page_size)
-    # Requires the PyMongo package.
-    # https://api.mongodb.com/python/current
 
-    # client = MongoClient(
-    #     'mongodb://admin:iStD-So.043-Database@34.72.136.99:27017/test?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&ssl=false')
-    # sorted_book_meta = mongo.db.book_meta.aggregate([
-    #     {
-    #         '$addFields': {
-    #             'asin': 1,
-    #             'categories1': {
-    #                 '$arrayElemAt': [
-    #                     '$categories', 0
-    #                 ]
-    #             }
-    #         }
-    #     }, {
-    #         '$project': {
-    #             'asin': 1,
-    #             'categories': {
-    #                 '$arrayElemAt': [
-    #                     '$categories', 0
-    #                 ]
-    #             }
-    #         }
-    #     }, {
-    #         '$sort': {
-    #             'asin': 1,
-    #             'categories': -1
-    #         }
-    #     }
-    # ])
     book_list = []
-    # print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-    mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-                              'Request': request.method, 'Path': request.full_path, 'Response': 200})
-
     for book in book_meta:
         book_list.append(book)
-
 
     form = SearchForm()
     if form.validate_on_submit():
@@ -84,7 +58,7 @@ def home(page_size, page_num):
                 flash('Book %s not found' % form.keyword.data, 'danger')
                 return render_template('403.html')
     return render_template('home.html', form=form, books=book_list, page_numbers=page_numbers, page_size=page_size,
-                           page_num=page_num, asin=randombookasin)
+                           page_num=page_num, asin=random_book_asin)
 
 
 @app.route("/about", methods=['GET'])
@@ -94,15 +68,21 @@ def about():
     return render_template('about.html')
 
 
+"""
+1. Book management page is open to admin only
+2. Book management display all books, including pagination
+3. When Admin click on a book, it will redirect to Edit Book page
+"""
 @app.route("/management", defaults={'page_num': 1, 'page_size': 12}, methods=['GET', 'POST'])
 @app.route("/management/<page_num>/<page_size>", methods=['GET', 'POST'])
 @login_required
 def management(page_size, page_num):
+    # Only Admin is allowed in book management page
     if current_user.username != 'admin':
         return redirect(url_for('home'))
     mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
                               'Request': request.method, 'Path': request.full_path, 'Response': 200})
-    form = SearchForm()
+    # Pagination
     page_num = int(page_num)
     page_size = int(page_size)
     page_numbers = list(range(1, 4000))
@@ -112,6 +92,7 @@ def management(page_size, page_num):
     for book in book_meta:
         book_list.append(book)
 
+    form = SearchForm()
     if form.validate_on_submit():
         if form.type.data.lower() == 'asin':
             return redirect(url_for('edit_book', asin=form.keyword.data))
@@ -129,8 +110,12 @@ def management(page_size, page_num):
                            page_num=page_num)
 
 
+"""
+User registration page
+"""
 @app.route("/register", methods=['GET', 'POST'])
 def register():
+    # Only allow register when no user is logged in
     if current_user.is_authenticated:
         return redirect(url_for('home'))
     form = RegistrationForm()
@@ -146,7 +131,9 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
-
+"""
+User login page
+"""
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -176,29 +163,42 @@ def logout():
                               'Request': request.method, 'Path': request.full_path, 'Response': 302})
     return redirect(url_for('home'))
 
-
+"""
+1. Add Book page is open to Admin only
+2. Only new book can be added and all data fields must be filled
+"""
 @app.route("/add_book", methods=['GET', 'POST'])
+@login_required
 def add_book():
+    # Only Admin is allowed in add book page
+    if current_user.username != 'admin':
+        return redirect(url_for('home'))
+
     form = AddBookForm()
-    print('add - book')
     mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
                               'Request': request.method, 'Path': request.full_path, 'Response': 200})
     if form.validate_on_submit():
-        print('adding')
-        mongo.db.book_meta.insert({'asin': form.asin.data, 'title': form.title.data,
-                                   'price': form.price.data, 'description': form.description.data,
-                                   'imUrl': form.image_url.data, 'categories': [],
-                                   'related': {'also_bought': [], 'buy_after_review': []}
-                                   })
-        flash('Book %s added successfully.' % form.asin.data, 'success')
-        print('added')
-        mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-                                  'Request': request.method, 'Path': request.full_path, 'Response': 302})
-        return redirect(url_for('management'))
+        try:
+            mongo.db.book_meta.insert({'asin': form.asin.data, 'title': form.title.data,
+                                       'price': form.price.data, 'description': form.description.data,
+                                       'imUrl': form.image_url.data, 'categories': [],
+                                       'related': {'also_bought': [], 'buy_after_review': []}
+                                       })
+        except:
+            flash('Unable to add Book %s.' % form.asin.data, 'danger')
+        else:
+            flash('Book %s added successfully.' % form.asin.data, 'success')
+            mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+                                      'Request': request.method, 'Path': request.full_path, 'Response': 302})
+        finally:
+            return redirect(url_for('management'))
 
     return render_template('add_book.html', title='Add Book', form=form, legend='Add Book')
 
-
+"""
+1. Display all reviews related to the book
+2. ASIN is required to get to this page
+"""
 @app.route("/review/<asin>", methods=['GET', 'POST'])
 def reviews(asin):
     book_meta = mongo.db.book_meta.find_one({'asin': asin})
@@ -206,7 +206,8 @@ def reviews(asin):
                               'Request': request.method, 'Path': request.full_path, 'Response': 200})
     if book_meta:
         if 'related' in book_meta.keys():
-            if 'also_viewed' in book_meta['related']:
+            if 'also_viewed' not in book_meta['related'].keys():
+
                 pass
                 # print(book_meta)
                 # review_list = Review.query.filter_by(asin=asin).all()
@@ -217,7 +218,7 @@ def reviews(asin):
                 book_meta['related']['also viewed'] = {}
                 # review_list = Review.query.filter_by(asin=asin).all()
                 # return render_template('review.html', title='Review', bookmeta=book_meta, reviews=review_list)
-        # if 'related' in book_meta.keys():
+            # if 'related' in book_meta.keys():
             if 'buy_after_viewing' in book_meta['related']:
                 pass
                 # print(book_meta)
@@ -242,7 +243,10 @@ def reviews(asin):
         flash('Book %s not found' % asin, 'danger')
         return render_template('403.html')
 
+"""
+1. User can only post review after login
 
+"""
 @app.route("/add_review/<asin>", methods=['GET', 'POST'])
 @login_required
 def add_review(asin):
@@ -281,6 +285,7 @@ def edit_book(asin):
     if request.method == "GET":
         book_meta = mongo.db.book_meta.find_one({'asin': asin})
         if book_meta:
+            # Display existing parameters from database
             # This Block is dumb but I cant write better code :(
             if 'asin' in book_meta.keys():
                 form.asin.data = book_meta['asin']
@@ -302,7 +307,7 @@ def edit_book(asin):
                                                                 'price': form.price.data,
                                                                 'description': form.description.data,
                                                                 'imUrl': form.image_url.data}})
-        a = mongo.db.book_meta.find({'asin': asin})
+
         mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
                                   'Request': request.method, 'Path': request.full_path, 'Response': 302})
         return redirect(url_for('management'))
@@ -312,5 +317,3 @@ def edit_book(asin):
 @login_required
 def test():
     return "<h1>test</h1>"
-
-# {"user_id":"", "HTTP_METHOD":"", "RESOURCE":""}

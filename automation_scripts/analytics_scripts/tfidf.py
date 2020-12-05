@@ -1,10 +1,14 @@
 from pyspark.mllib.feature import HashingTF, IDF
 from pyspark import SparkContext
-
+"""
+Following implementation is based on sample provided by Apache Spark repository
+It uses building in method to calculate TF-TDF
+https://github.com/apache/spark/blob/master/examples/src/main/python/mllib/tf_idf_example.py
+"""
 sc = SparkContext("local", "TF-IDF")
 
 # Load documents (one per line).
-documents = sc.textFile("hdfs://172.31.69.250:9000/input/reviews.txt").map(lambda line: line.split(" "))
+documents = sc.textFile("hdfs://$NAME_NODE_IP:9000/input/reviews.txt").map(lambda line: line.split(" "))
 
 hashingTF = HashingTF()
 tf = hashingTF.transform(documents)
@@ -23,4 +27,4 @@ idfIgnore = IDF(minDocFreq=2).fit(tf)
 tfidfIgnore = idfIgnore.transform(tf)
 
 # save tf-idf
-tfidfIgnore.saveAsTextFile('hdfs://172.31.69.250:9000/output/tfidf')
+tfidfIgnore.saveAsTextFile('hdfs://$NAME_NODE_IP:9000/output/tfidf')

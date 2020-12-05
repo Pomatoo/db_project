@@ -1,0 +1,21 @@
+{
+    "created_instances": [
+        {
+            "id": "i-0763ccfe85edba46d",
+            "ip": "3.81.105.14",
+            "private_ip": "172.31.32.204"
+        },
+        {
+            "id": "i-0ea3fa0caf8882a8d",
+            "ip": "54.197.138.211",
+            "private_ip": "172.31.34.180"
+        },
+        {
+            "id": "i-027d39f95825cb10e",
+            "ip": "3.89.191.112",
+            "private_ip": "172.31.34.88"
+        }
+    ],
+    "access_key_name": "databaseProjectKeyGroup14",
+    "security_group_name": "databaseProjectSecurityGroup14"
+}

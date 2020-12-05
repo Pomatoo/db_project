@@ -1,7 +1,9 @@
 from book_management_app import db
 from flask_login import UserMixin
 
-
+"""
+ORM for MySQL
+"""
 class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     asin = db.Column(db.String(255), index=True, nullable=False)

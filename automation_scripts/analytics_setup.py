@@ -14,6 +14,11 @@ config.read('aws_config.conf')
 num_of_datanode = int(config.get('analytics-system', 'num_of_datanode'))
 log('Number of data node: %s ' % num_of_datanode)
 
+web_config = ConfigParser()
+web_config.read('web_config.conf')
+mysql_ip = config.get('db', 'mysql')
+mongo_ip = config.get('db', 'mongo')
+
 datanode_list = []
 
 for i in range(num_of_datanode):
@@ -67,13 +72,23 @@ for data_node in datanode_list:
     data_node_private_ips += '%s ' % node_details['private_ip']
 
 # Set Up Name Node
-# ssh_client_name_node.run(
-#     'echo "export MASTER=\'%s\'" >> ~/.bashrc && source ~/.bashrc' % name_node.get_instance_details()['ip'])
-# ssh_client_name_node.run('echo "export WORKERS=\'%s\'" >> ~/.bashrc && source ~/.bashrc' % data_node_private_ips)
 ssh_client_name_node.put('./analytics_scripts/set_up_namenode.sh')
 ssh_client_name_node.run("sed -i 's/export MASTER/export MASTER=%s/g' ./set_up_namenode.sh" % name_node.get_instance_details()['private_ip'])
 ssh_client_name_node.run("sed -i 's/export WORKERS/export WORKERS=\"%s\"/g' ./set_up_namenode.sh" % data_node_private_ips)
 ssh_client_name_node.run('chmod +x ./set_up_namenode.sh && ./set_up_namenode.sh')
+# Configure TF-IDF script
+ssh_client_name_node.put('./analytics_scripts/run_tfidf.sh')
+ssh_client_name_node.run("sed -i 's/$MYSQL_HOST/%s/g' ./run_tfidf.sh" % mysql_ip)
+ssh_client_name_node.put('./analytics_scripts/tfidf.py')
+ssh_client_name_node.run('chmod 777 ./tfidf.py')
+ssh_client_name_node.run('chmod +x ./run_tfidf.sh')
+# Configure Correlation script
+ssh_client_name_node.put('./analytics_scripts/run_correlation.sh')
+ssh_client_name_node.run("sed -i 's/$MYSQL_HOST/%s/g' ./run_correlation.sh" % mysql_ip)
+ssh_client_name_node.run("sed -i 's/$MONGO_HOST/%s/g' ./run_correlation.sh" % mongo_ip)
+ssh_client_name_node.put('./analytics_scripts/correlation.py')
+ssh_client_name_node.run('chmod 777 ./correlation.py')
+ssh_client_name_node.run('chmod +x ./run_correlation.sh')
 ssh_client_name_node.close()
 
 
