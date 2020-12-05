@@ -4,33 +4,60 @@ from book_management_app.forms import *
 from flask import request, render_template, redirect, flash, url_for
 from flask_login import login_user, current_user, logout_user, login_required
 from book_management_app.utils import *
-import time
-from datetime import datetime
-
+import time, random
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-# @app.after_request
-# def log_request(response):
-#    response.direct_passthrough = False
-#    timestamp = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-#    body = response.data.decode('utf-8')
-#    status_code = response.status_code
-#   mongo.db.web_logs.insert({'Time': timestamp, 'Body':body, 'Method':request.method,
-#                              'Path':request.full_path, 'Status_code': status_code})
-
-
 @app.route("/", defaults={'page_num': 1, 'page_size': 12}, methods=['GET', 'POST'])
 @app.route("/<page_num>/<page_size>", methods=['GET', 'POST'])
 def home(page_size, page_num):
+    #random book function
+    random_book_list = []
+    random_book_meta = mongo.db.book_meta.find().skip(random.randint(0, 434702)).limit(1)
+    for book in random_book_meta:
+        random_book_list.append(book)
+    randombook = random_book_list[0]
+    randombookasin = randombook['asin']
     page_num = int(page_num)
     page_size = int(page_size)
-    page_numbers = list(range(1, 4000))
+    page_numbers = list(range(1, 36300))
     skips = page_size * (page_num - 1)
+    #book_categories = mongo.db.book_meta.find({"categories":{$elemMatch:{$elemMatch:{$in:["Books"]}}}})
     book_meta = mongo.db.book_meta.find().skip(skips).limit(page_size)
+    # Requires the PyMongo package.
+    # https://api.mongodb.com/python/current
+
+    # client = MongoClient(
+    #     'mongodb://admin:iStD-So.043-Database@34.72.136.99:27017/test?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&ssl=false')
+    # sorted_book_meta = mongo.db.book_meta.aggregate([
+    #     {
+    #         '$addFields': {
+    #             'asin': 1,
+    #             'categories1': {
+    #                 '$arrayElemAt': [
+    #                     '$categories', 0
+    #                 ]
+    #             }
+    #         }
+    #     }, {
+    #         '$project': {
+    #             'asin': 1,
+    #             'categories': {
+    #                 '$arrayElemAt': [
+    #                     '$categories', 0
+    #                 ]
+    #             }
+    #         }
+    #     }, {
+    #         '$sort': {
+    #             'asin': 1,
+    #             'categories': -1
+    #         }
+    #     }
+    # ])
     book_list = []
     # print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
     mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
@@ -38,6 +65,7 @@ def home(page_size, page_num):
 
     for book in book_meta:
         book_list.append(book)
+
 
     form = SearchForm()
     if form.validate_on_submit():
@@ -56,7 +84,7 @@ def home(page_size, page_num):
                 flash('Book %s not found' % form.keyword.data, 'danger')
                 return render_template('403.html')
     return render_template('home.html', form=form, books=book_list, page_numbers=page_numbers, page_size=page_size,
-                           page_num=page_num, catagories=[1, 2, 3, 4, 5])
+                           page_num=page_num, asin=randombookasin)
 
 
 @app.route("/about", methods=['GET'])
@@ -86,8 +114,6 @@ def management(page_size, page_num):
 
     if form.validate_on_submit():
         if form.type.data.lower() == 'asin':
-            mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-                                      'Request': request.method, 'Path': request.full_path, 'Response': 302})
             return redirect(url_for('edit_book', asin=form.keyword.data))
         elif form.type.data.lower() == 'book':
             book_meta = mongo.db.book_meta.find_one({'title': form.keyword.data})
@@ -179,7 +205,33 @@ def reviews(asin):
     mongo.db.web_logs.insert({'Time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
                               'Request': request.method, 'Path': request.full_path, 'Response': 200})
     if book_meta:
-        print(book_meta)
+        if 'related' in book_meta.keys():
+            if 'also_viewed' in book_meta['related']:
+                pass
+                # print(book_meta)
+                # review_list = Review.query.filter_by(asin=asin).all()
+                # print('reviews size : %s ' % len(review_list))
+                # print(review_list)
+                # return render_template('review.html', title='Review', bookmeta=book_meta, reviews=review_list)
+            else:
+                book_meta['related']['also viewed'] = {}
+                # review_list = Review.query.filter_by(asin=asin).all()
+                # return render_template('review.html', title='Review', bookmeta=book_meta, reviews=review_list)
+        # if 'related' in book_meta.keys():
+            if 'buy_after_viewing' in book_meta['related']:
+                pass
+                # print(book_meta)
+                # review_list = Review.query.filter_by(asin=asin).all()
+                # print('reviews size : %s ' % len(review_list))
+                # print(review_list)
+                # return render_template('review.html', title='Review', bookmeta=book_meta, reviews=review_list)
+            else:
+                book_meta['related']['buy_after_viewing'] = {}
+                # review_list = Review.query.filter_by(asin=asin).all()
+                # return render_template('review.html', title='Review', bookmeta=book_meta, reviews=review_list)
+        else:
+            book_meta['related'] = {}
+            # review_list = Review.query.filter_by(asin=asin).all()
         review_list = Review.query.filter_by(asin=asin).all()
         print('reviews size : %s ' % len(review_list))
         print(review_list)
