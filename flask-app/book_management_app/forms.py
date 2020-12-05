@@ -7,6 +7,8 @@ from book_management_app import mongo
 """
 Flask Forms
 """
+
+
 class RegistrationForm(FlaskForm):
     user_id = StringField('User ID', validators=[DataRequired(), Length(min=2, max=20)])
     username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])

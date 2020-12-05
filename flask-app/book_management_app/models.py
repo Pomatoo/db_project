@@ -4,6 +4,8 @@ from flask_login import UserMixin
 """
 ORM for MySQL
 """
+
+
 class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     asin = db.Column(db.String(255), index=True, nullable=False)
@@ -22,4 +24,3 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(20), nullable=True)
     user_id = db.Column(db.String(50), unique=True)
     password = db.Column(db.String(60), nullable=True)
-

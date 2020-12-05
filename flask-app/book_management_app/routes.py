@@ -7,7 +7,7 @@ from flask_login import login_user, current_user, logout_user, login_required
 from book_management_app import app, db, login_manager
 from book_management_app.forms import *
 from book_management_app.models import Review
-from book_management_app.utils import *
+
 
 
 @login_manager.user_loader
