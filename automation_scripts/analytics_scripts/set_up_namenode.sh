@@ -107,8 +107,4 @@ sudo mv spark-3.0.1-bin-hadoop3.2 /opt/
 sudo chown -R ubuntu:ubuntu /opt/spark-3.0.1-bin-hadoop3.2
 echo "export PATH=$PATH:/opt/sqoop-1.4.7/bin:/opt/hadoop-3.3.0/bin:/opt/hadoop-3.3.0/sbin" >> ~/.bashrc && source ~/.bashrc
 mkdir ~/result
-#rm *gz
-#-o StrictHostKeyChecking=no
-#echo "export MASTER='value'" >> ~/.bashrc && source ~/.bashrc
-#echo "export WORKERS='value'" >> ~/.bashrc && source ~/.bashrc
-#sqoop import --connect jdbc:mysql://34.72.136.99/testDB?useSSL=false --table review  --columns "review_text" --username root --password iStD-So.043-Database -m 1
+rm *gz

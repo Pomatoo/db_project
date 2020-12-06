@@ -18,3 +18,4 @@ sed -i "s/# export JAVA_HOME=.*/export\ JAVA_HOME=${JH}/g" hadoop-3.3.0/etc/hado
 wget https://apachemirror.sg.wuchna.com/spark/spark-3.0.1/spark-3.0.1-bin-hadoop3.2.tgz
 tar zxvf spark-3.0.1-bin-hadoop3.2.tgz
 #scp -o StrictHostKeyChecking=no ubuntu@206.196.xxx.xxx:/spark-3.0.1-bin-hadoop3.2.tgz .
+#sshpass -p "iStD-So.043-Database" scp -o StrictHostKeyChecking=no -r ubuntu@54.157.166.248:/home/ubuntu/testing .
