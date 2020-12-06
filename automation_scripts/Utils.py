@@ -302,5 +302,5 @@ if __name__ == "__main__":
     # c.run("sed -i 's/export WORKERS/export WORKERS=\"%s\"/g' ./set_up_namenode.sh" % '172.31.72.97')
     # # c.run('bash ./send.sh')
     # c.run('cat ./set_up_namenode.sh')
-    ssh_client_name_node.close()
+    # ssh_client_name_node.close()
 

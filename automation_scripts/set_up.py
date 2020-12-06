@@ -36,7 +36,6 @@ for data_node in datanode_list:
     data_node.start()
 name_node.start()
 
-
 web_worker.join()
 mysql_worker.join()
 mongo_worker.join()
