@@ -9,7 +9,7 @@ created_instances = content['created_instances']
 key_name = content['access_key_name']
 security_group_name = content['security_group_name']
 
-aws_manager = AwsManager(init_security_group_and_key=False)
+aws_manager = AwsManager()
 log('Created instances are %s' % content)
 for each_instance in created_instances:
     aws_manager.terminate_instances(each_instance['id'])

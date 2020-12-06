@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 echo "Getting dataset from MySQL"
-mysql -h $MYSQL_HOST -uroot -piStD-So.043-Database -e 'SELECT review_text FROM testDB.review' | sed 's/\t/","/g;s/^/"/;s/$/"/;s/\n//g' > reviews.txt
+mysql -h $MYSQL_HOST -uroot -piStD-So.043-Database -e 'SELECT review_text FROM testDB.review' > reviews.txt
 /opt/hadoop-3.3.0/bin/hdfs dfs -rm -r /input
 /opt/hadoop-3.3.0/bin/hdfs dfs -mkdir /input
 /opt/hadoop-3.3.0/bin/hdfs dfs -put reviews.txt /input

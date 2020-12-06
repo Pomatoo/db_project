@@ -8,7 +8,7 @@ echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongod
 sudo apt-get update
 sudo apt-get install -y mongodb-org
 sudo systemctl start mongod
-#sudo sysctl vm.swappiness=10
+sudo sysctl vm.swappiness=10
 echo -e "\n"|ssh-keygen -t rsa -N ""
 cat .ssh/id_rsa.pub >> .ssh/authorized_keys
 wget https://apachemirror.sg.wuchna.com/hadoop/common/hadoop-3.3.0/hadoop-3.3.0.tar.gz
@@ -17,3 +17,4 @@ export JH="\/usr\/lib\/jvm\/java-8-openjdk-amd64"
 sed -i "s/# export JAVA_HOME=.*/export\ JAVA_HOME=${JH}/g" hadoop-3.3.0/etc/hadoop/hadoop-env.sh
 wget https://apachemirror.sg.wuchna.com/spark/spark-3.0.1/spark-3.0.1-bin-hadoop3.2.tgz
 tar zxvf spark-3.0.1-bin-hadoop3.2.tgz
+#scp -o StrictHostKeyChecking=no ubuntu@206.196.xxx.xxx:/spark-3.0.1-bin-hadoop3.2.tgz .

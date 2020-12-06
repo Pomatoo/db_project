@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-sudo apt-get update
-sudo apt-get install -y wget unzip openjdk-8-jdk
-sudo sysctl vm.swappiness=10
 tar zxvf hadoop-3.3.0.tgz
 sudo mv hadoop-3.3.0 /opt/
 sudo mkdir -p /mnt/hadoop/datanode/

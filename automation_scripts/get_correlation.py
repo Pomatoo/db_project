@@ -1,17 +1,20 @@
 from Utils import *
+import json
 
-# This parser is to get public ip of MySQL server
-config1 = ConfigParser()
-config1.read('analytics_config.conf')
-name_node_ip = config1.get('name-node', 'name_node_public_ip')
+with open('created_aws_instances.json', 'r') as f:
+    content = json.loads(f.read())
 
-# This parser is to get ssh key name
-config2 = ConfigParser()
-config2.read('aws_config.conf')
-key = config2.get('aws-credentials', 'access_key_name')
+created_instances = content['created_instances']
+name_node_ip = ''
+for instance in created_instances:
+    if instance['instance_name'] == 'name_node':
+        name_node_ip = instance['ip']
+        break
+
+key_name = content['access_key_name']
 
 log('Running Pearson Correlation Job')
-ssh_client_name_node = get_ssh_client(name_node_ip, key)
+ssh_client_name_node = get_ssh_client(name_node_ip, key_name)
 ssh_client_name_node.run('./run_correlation.sh')
 ssh_client_name_node.close()
 log('Completed Pearson Correlation Job')

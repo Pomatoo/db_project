@@ -22,7 +22,7 @@ mongo_ip = web_config.get('db', 'mongo')
 datanode_list = []
 
 for i in range(num_of_datanode):
-    node = WorkerThread(aws_manager, 'data_node_%s' % i)
+    node = WorkerThread(aws_manager, 'data_node_%s' % i, sh_file=['analytics_scripts', 'data_node.sh'])
     datanode_list.append(node)
 
 name_node = WorkerThread(aws_manager, 'name_node', sh_file=['analytics_scripts', 'name_node.sh'])
@@ -93,6 +93,9 @@ ssh_client_name_node.run("sed -i 's/$MONGO_HOST/%s/g' ./run_correlation.sh" % mo
 ssh_client_name_node.run("sed -i 's/$NAME_NODE_IP/%s/g' ./correlation.py" % name_node.get_instance_details()['private_ip'])
 ssh_client_name_node.run('chmod 777 ./correlation.py')
 ssh_client_name_node.run('chmod +x ./run_correlation.sh')
+# Configure HTTP server
+ssh_client_name_node.put('./analytics_scripts/http_server.py')
+ssh_client_name_node.run('chmod 777 ./http_server.py')
 ssh_client_name_node.close()
 
 # Set Up Data Node
@@ -107,5 +110,5 @@ for data_node in datanode_list:
 ssh_client_name_node = get_ssh_client(name_node.get_instance_details()['ip'], aws_manager.get_access_key_name())
 ssh_client_name_node.run('/opt/hadoop-3.3.0/sbin/start-dfs.sh && /opt/hadoop-3.3.0/sbin/start-yarn.sh')
 ssh_client_name_node.run('/opt/spark-3.0.1-bin-hadoop3.2/sbin/start-all.sh')
-ssh_client_name_node.run('cd ~/result && nohup python3 -m http.server 8000 > /dev/null 2>&1 &')
+ssh_client_name_node.run('nohup python3 http_server.py > /dev/null 2>&1 &')
 ssh_client_name_node.close()

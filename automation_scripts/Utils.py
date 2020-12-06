@@ -44,7 +44,7 @@ class WorkerThread(threading.Thread):
         return self.instance_details
 
     def instance_set_up(self):
-        new_instance = self.aws_manager.create_an_instance()
+        new_instance = self.aws_manager.create_an_instance(instance_name=self.thread_name)
         self.instance_details = new_instance
         log('Thread-%s waiting for instance initialization, ETA 3 mins ' % self.thread_name)
         while 1:
@@ -163,7 +163,7 @@ class AwsManager(object):
         )
         log('Security Group %s is deleted' % group_name)
 
-    def create_an_instance(self):
+    def create_an_instance(self, instance_name='instance'):
         """
         Sample output:
         {'Groups': [], 'Instances': [{'AmiLaunchIndex': 0, 'ImageId': 'ami-00ddb0e5626798373', 'InstanceId': 'i-0f530309de61f982d', 'InstanceType': 't2.medium', 'KeyName': 'databaseProjectKey', 'LaunchTime': datetime.datetime(2020, 11, 16, 12, 48, 14, tzinfo=tzutc()), 'Monitoring': {'State': 'disabled'}, 'Placement': {'AvailabilityZone': 'us-east-1f', 'GroupName': '', 'Tenancy': 'default'}, 'PrivateDnsName': 'ip-172-31-67-248.ec2.internal', 'PrivateIpAddress': '172.31.67.248', 'ProductCodes': [], 'PublicDnsName': '', 'State': {'Code': 0, 'Name': 'pending'}, 'StateTransitionReason': '', 'SubnetId': 'subnet-849cfa8a', 'VpcId': 'vpc-2fe81052', 'Architecture': 'x86_64', 'BlockDeviceMappings': [], 'ClientToken': '635a9213-5717-4c26-92b2-e76a932b9af5', 'EbsOptimized': False, 'EnaSupport': True, 'Hypervisor': 'xen', 'NetworkInterfaces': [{'Attachment': {'AttachTime': datetime.datetime(2020, 11, 16, 12, 48, 14, tzinfo=tzutc()), 'AttachmentId': 'eni-attach-0f08e208461e61dc6', 'DeleteOnTermination': True, 'DeviceIndex': 0, 'Status': 'attaching'}, 'Description': '', 'Groups': [{'GroupName': 'Database_project', 'GroupId': 'sg-00de8805e27c31078'}], 'Ipv6Addresses': [], 'MacAddress': '16:ac:f8:63:e6:6b', 'NetworkInterfaceId': 'eni-0cd39199ec2838c36', 'OwnerId': '891842124584', 'PrivateDnsName': 'ip-172-31-67-248.ec2.internal', 'PrivateIpAddress': '172.31.67.248', 'PrivateIpAddresses': [{'Primary': True, 'PrivateDnsName': 'ip-172-31-67-248.ec2.internal', 'PrivateIpAddress': '172.31.67.248'}], 'SourceDestCheck': True, 'Status': 'in-use', 'SubnetId': 'subnet-849cfa8a', 'VpcId': 'vpc-2fe81052', 'InterfaceType': 'interface'}], 'RootDeviceName': '/dev/sda1', 'RootDeviceType': 'ebs', 'SecurityGroups': [{'GroupName': 'Database_project', 'GroupId': 'sg-00de8805e27c31078'}], 'SourceDestCheck': True, 'StateReason': {'Code': 'pending', 'Message': 'pending'}, 'VirtualizationType': 'hvm', 'CpuOptions': {'CoreCount': 2, 'ThreadsPerCore': 1}, 'CapacityReservationSpecification': {'CapacityReservationPreference': 'open'}, 'MetadataOptions': {'State': 'pending', 'HttpTokens': 'optional', 'HttpPutResponseHopLimit': 1, 'HttpEndpoint': 'enabled'}}], 'OwnerId': '891842124584', 'ReservationId': 'r-005ae25a3e1f7e597', 'ResponseMetadata': {'RequestId': '3945171c-037e-42fd-a64a-2d0ac2ae9d54', 'HTTPStatusCode': 200, 'HTTPHeaders': {'x-amzn-requestid': '3945171c-037e-42fd-a64a-2d0ac2ae9d54', 'content-type': 'text/xml;charset=UTF-8', 'content-length': '4891', 'vary': 'accept-encoding', 'date': 'Mon, 16 Nov 2020 12:48:14 GMT', 'server': 'AmazonEC2'}, 'RetryAttempts': 0}}
@@ -202,7 +202,7 @@ class AwsManager(object):
 
         log('Instance is created, ip:%s, id:%s, key:%s, security-group:%s ' %
             (public_ip, instance_id, self.__access_key_name, self.__security_group_name))
-        return {'id': instance_id, 'ip': public_ip, 'private_ip': private_ip}
+        return {'id': instance_id, 'ip': public_ip, 'private_ip': private_ip, 'instance_name': instance_name}
 
     def __create_access_key(self):
         existing_key_paris = [key['KeyName'] for key in self.__ec_client.describe_key_pairs()['KeyPairs']]
@@ -287,7 +287,7 @@ if __name__ == "__main__":
     from fabric import Connection
 
     ssh_client_name_node = Connection(
-        host='3.238.251.228',
+        host='35.170.77.160',
         user="ubuntu",
         connect_kwargs={
             "key_filename": "databaseProjectKeyGroup14.pem",
@@ -298,14 +298,7 @@ if __name__ == "__main__":
     # c.run('for h in $WORKERS ; do scp -o StrictHostKeyChecking=no hadoop-3.3.0.tgz $h:.; done;')
     # c.run('for i in ${WORKERS}; do scp -o StrictHostKeyChecking=no spark-3.0.1-bin-hadoop3.2.tgz $i:./spark-3.0.1-bin-hadoop3.2.tgz; done')
 
-    ssh_client_name_node.put('./analytics_scripts/run_correlation.sh')
-    ssh_client_name_node.run("sed -i 's/$MYSQL_HOST/%s/g' ./run_correlation.sh" % '34.72.136.99')
-    ssh_client_name_node.run("sed -i 's/$MONGO_HOST/%s/g' ./run_correlation.sh" % '34.72.136.99')
-    ssh_client_name_node.put('./analytics_scripts/correlation.py')
-    ssh_client_name_node.run('chmod 777 ./correlation.py')
-    ssh_client_name_node.run('chmod +x ./run_correlation.sh')
-    breakpoint()
-    ssh_client_name_node.run('./run_correlation.sh')
+    ssh_client_name_node.run('nohup python3 http_server.py > /dev/null 2>&1 &')
     # c.run("sed -i 's/export WORKERS/export WORKERS=\"%s\"/g' ./set_up_namenode.sh" % '172.31.72.97')
     # # c.run('bash ./send.sh')
     # c.run('cat ./set_up_namenode.sh')
