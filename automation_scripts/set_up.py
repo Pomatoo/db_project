@@ -36,13 +36,10 @@ for data_node in datanode_list:
     data_node.start()
 name_node.start()
 
-name_node.join()
+
 web_worker.join()
 mysql_worker.join()
 mongo_worker.join()
-for data_node in datanode_list:
-    data_node.join()
-
 # Configuration for Production system
 # get_instance_details() => {'id': instance_id, 'ip': public_ip, 'private_ip': private_ip, 'instance_name': instance_name}
 mysql_instance = mysql_worker.get_instance_details()
@@ -59,6 +56,10 @@ with open('web_config.conf', 'w') as f:
 
 # Configuration for Analytics system
 # Grab public key to local machine
+name_node.join()
+for data_node in datanode_list:
+    data_node.join()
+
 name_node_instance = name_node.get_instance_details()
 ssh_client_name_node = get_ssh_client(name_node_instance['ip'], analytics_manager.get_access_key_name())
 ssh_client_name_node.get('.ssh/id_rsa.pub')
