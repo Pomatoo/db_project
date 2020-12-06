@@ -1,7 +1,7 @@
 from Utils import *
 import json
 
-log('Instances set up, ETA 10 mins')
+log('Instances set up, ETA 30 mins')
 production_manager = AwsManager(system_type='production')
 analytics_manager = AwsManager(system_type='analytics')
 
