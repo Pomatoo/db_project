@@ -2,7 +2,7 @@ from Utils import *
 import json
 
 log('Instances set up, ETA 10 mins')
-aws_manager = AwsManager(init_security_group_and_key=False, system_type='analytics')
+aws_manager = AwsManager(system_type='analytics')
 
 to_be_logged = {'created_instances': [],
                 'access_key_name': aws_manager.get_access_key_name(),
@@ -16,8 +16,8 @@ log('Number of data node: %s ' % num_of_datanode)
 
 web_config = ConfigParser()
 web_config.read('web_config.conf')
-mysql_ip = config.get('db', 'mysql')
-mongo_ip = config.get('db', 'mongo')
+mysql_ip = web_config.get('db', 'mysql')
+mongo_ip = web_config.get('db', 'mongo')
 
 datanode_list = []
 
@@ -73,24 +73,27 @@ for data_node in datanode_list:
 
 # Set Up Name Node
 ssh_client_name_node.put('./analytics_scripts/set_up_namenode.sh')
-ssh_client_name_node.run("sed -i 's/export MASTER/export MASTER=%s/g' ./set_up_namenode.sh" % name_node.get_instance_details()['private_ip'])
-ssh_client_name_node.run("sed -i 's/export WORKERS/export WORKERS=\"%s\"/g' ./set_up_namenode.sh" % data_node_private_ips)
+ssh_client_name_node.run(
+    "sed -i 's/export MASTER/export MASTER=%s/g' ./set_up_namenode.sh" % name_node.get_instance_details()['private_ip'])
+ssh_client_name_node.run(
+    "sed -i 's/export WORKERS/export WORKERS=\"%s\"/g' ./set_up_namenode.sh" % data_node_private_ips)
 ssh_client_name_node.run('chmod +x ./set_up_namenode.sh && ./set_up_namenode.sh')
 # Configure TF-IDF script
 ssh_client_name_node.put('./analytics_scripts/run_tfidf.sh')
-ssh_client_name_node.run("sed -i 's/$MYSQL_HOST/%s/g' ./run_tfidf.sh" % mysql_ip)
 ssh_client_name_node.put('./analytics_scripts/tfidf.py')
+ssh_client_name_node.run("sed -i 's/$MYSQL_HOST/%s/g' ./run_tfidf.sh" % mysql_ip)
+ssh_client_name_node.run("sed -i 's/$NAME_NODE_IP/%s/g' ./tfidf.py" % name_node.get_instance_details()['private_ip'])
 ssh_client_name_node.run('chmod 777 ./tfidf.py')
 ssh_client_name_node.run('chmod +x ./run_tfidf.sh')
 # Configure Correlation script
 ssh_client_name_node.put('./analytics_scripts/run_correlation.sh')
+ssh_client_name_node.put('./analytics_scripts/correlation.py')
 ssh_client_name_node.run("sed -i 's/$MYSQL_HOST/%s/g' ./run_correlation.sh" % mysql_ip)
 ssh_client_name_node.run("sed -i 's/$MONGO_HOST/%s/g' ./run_correlation.sh" % mongo_ip)
-ssh_client_name_node.put('./analytics_scripts/correlation.py')
+ssh_client_name_node.run("sed -i 's/$NAME_NODE_IP/%s/g' ./correlation.py" % name_node.get_instance_details()['private_ip'])
 ssh_client_name_node.run('chmod 777 ./correlation.py')
 ssh_client_name_node.run('chmod +x ./run_correlation.sh')
 ssh_client_name_node.close()
-
 
 # Set Up Data Node
 for data_node in datanode_list:
@@ -100,26 +103,9 @@ for data_node in datanode_list:
     ssh_client_data_node.run('chmod +x ./set_up_datanode.sh && ./set_up_datanode.sh')
     ssh_client_data_node.close()
 
-# RUN
+# RUN Hadoop and Spark
 ssh_client_name_node = get_ssh_client(name_node.get_instance_details()['ip'], aws_manager.get_access_key_name())
 ssh_client_name_node.run('/opt/hadoop-3.3.0/sbin/start-dfs.sh && /opt/hadoop-3.3.0/sbin/start-yarn.sh')
 ssh_client_name_node.run('/opt/spark-3.0.1-bin-hadoop3.2/sbin/start-all.sh')
+ssh_client_name_node.run('cd ~/result && nohup python3 -m http.server 8000 > /dev/null 2>&1 &')
 ssh_client_name_node.close()
-
-# ssh ubuntu@35.153.98.254 -i myKey.pem "sudo cat /home/ubuntu/.ssh/id_rsa.pub" | ssh ubuntu@54.197.44.24 -i myKey.pem "sudo cat - | sudo tee -a /home/ubuntu/.ssh/authorized_keys"
-
-# log(to_be_logged)
-# with open('created_aws_instances.json', 'w') as f:
-#     json.dump(to_be_logged, f, indent=4)
-
-
-# Process:
-# all data nodes run
-# tar zxvf hadoop-3.3.0.tgz
-# sudo mv hadoop-3.3.0 /opt/
-# sudo mkdir -p /mnt/hadoop/datanode/
-# sudo chown -R ubuntu:ubuntu /mnt/hadoop/datanode/
-#
-# tar zxvf spark-3.0.1-bin-hadoop3.2.tgz
-# sudo mv spark-3.0.1-bin-hadoop3.2 /opt/
-# sudo chown -R ubuntu:ubuntu /opt/spark-3.0.1-bin-hadoop3.2

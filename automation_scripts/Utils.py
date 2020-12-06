@@ -8,6 +8,7 @@ from time import strftime
 from botocore.exceptions import ClientError
 from configparser import ConfigParser
 from time import sleep
+import os.path
 from fabric import Connection
 
 
@@ -78,7 +79,7 @@ class WorkerThread(threading.Thread):
 
 class AwsManager(object):
 
-    def __init__(self, system_type='production', init_security_group_and_key=False):
+    def __init__(self, system_type='production'):
         self.__config = ConfigParser()
         self.__config.read('aws_config.conf')
 
@@ -118,9 +119,8 @@ class AwsManager(object):
             self.instance_type = self.__config.get('analytics-system', 'instance_type')
             self.instance_ami = self.__config.get('analytics-system', 'instance_ami')
 
-        if init_security_group_and_key:
-            self.__create_security_group()
-            self.__create_access_key()
+        self.__create_security_group()
+        self.__create_access_key()
 
     def get_access_key_name(self):
         return self.__access_key_name
@@ -208,8 +208,10 @@ class AwsManager(object):
         existing_key_paris = [key['KeyName'] for key in self.__ec_client.describe_key_pairs()['KeyPairs']]
         log('Existing Key Paris: %s' % existing_key_paris)
         if self.__access_key_name in existing_key_paris:
-            raise Exception(
-                'Error, Key-%s already exists, assign a new access_key_name in aws_config.conf' % self.__access_key_name)
+            if os.path.exists('%s.pem' % self.__access_key_name):
+                return
+            else:
+                self.remove_key_pair(self.__access_key_name)
 
         log('Creating Access Key %s' % self.__access_key_name)
         response = self.__ec_client.create_key_pair(
@@ -221,7 +223,6 @@ class AwsManager(object):
         with open('%s.pem' % self.__access_key_name, 'w') as f:
             f.write(key)
         log(os.getcwd() + os.path.sep + '%s.pem is created' % self.__access_key_name)
-        os.chmod('%s.pem' % self.__access_key_name, 0o400)
 
     def __create_security_group(self):
         """
@@ -236,9 +237,8 @@ class AwsManager(object):
         log('Existing Security Groups: %s' % existing_groups)
 
         if self.__config.get('aws-credentials', 'security_group_name') in existing_groups:
-            raise Exception(
-                'Error, Group-%s already exists, assign a new security_group_name in aws_config.conf' % self.__config.get(
-                    'aws-credentials', 'security_group_name'))
+            return
+
         log('Creating Security Group: %s' % self.__config.get('aws-credentials', 'security_group_name'))
 
         try:

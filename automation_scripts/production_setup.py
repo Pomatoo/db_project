@@ -2,7 +2,7 @@ from Utils import *
 import json
 
 log('Instances set up, ETA 10 mins')
-aws_manager = AwsManager(init_security_group_and_key=False, system_type='production')
+aws_manager = AwsManager(system_type='production')
 
 to_be_logged = {'created_instances': [],
                 'access_key_name': aws_manager.get_access_key_name(),

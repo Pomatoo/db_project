@@ -107,7 +107,6 @@ sudo mv spark-3.0.1-bin-hadoop3.2 /opt/
 sudo chown -R ubuntu:ubuntu /opt/spark-3.0.1-bin-hadoop3.2
 echo "export PATH=$PATH:/opt/sqoop-1.4.7/bin:/opt/hadoop-3.3.0/bin:/opt/hadoop-3.3.0/sbin" >> ~/.bashrc && source ~/.bashrc
 mkdir ~/result
-cd ~/result && nohup python3 -m http.server 8000 > /dev/null 2>&1 &
 #rm *gz
 #-o StrictHostKeyChecking=no
 #echo "export MASTER='value'" >> ~/.bashrc && source ~/.bashrc

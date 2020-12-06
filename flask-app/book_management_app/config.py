@@ -1,9 +1,11 @@
 from configparser import ConfigParser
 
-
+# To assign IPs of MongoDB and Mysql
 class Config:
     cf = ConfigParser()
+    # Local path
     # cf.read('./web_config.conf')
+    # Server Path
     cf.read('/home/ubuntu/web_config.conf')
     mysql = cf.get('db', 'mysql')
     mongo = cf.get('db', 'mongo')
