@@ -5,61 +5,80 @@
 {% endblock title %}
 
 {% block content %}
+<br>
+<center>
+<h1 style="color:#2E86C1">Welcome to GoodBooks!</h1>
+<div>
+<img src="https://images.unsplash.com/photo-1551029506-0807df4e2031?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=2691&q=80"
+width="1024px">
+</div>
     <br>
-    <center>
-        <h1 style="color:#2E86C1">Welcome to GoodBooks!</h1>
-        <div>
-            <img src="https://images.unsplash.com/photo-1551029506-0807df4e2031?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=2691&q=80"
-                 width="1024px">
-        </div>
-        <br>
-        <h1 style="color:#2E86C1">Search for your next book.</h1>
-    </center>
+    <h1 style="color:#2E86C1">Search for your next book.</h1>
+</center>
     <br>
-    <center>
-        <div class="content-section">
-            <form class="col-12" method="POST" action="">
-                {{ form.hidden_tag() }}
-                <div class="form-row">
-                    {{ form.keyword(class="form-control col-sm-10", placeholder="Search Book/ASIN") }}
-                    {{ form.type(class="selectpicker") }}
-                    {{ form.submit(class="btn btn-outline-secondary") }}
-                </div>
-    </center>
-    <br>
-    <div class="container">
-        <div class="row">
-            <div class="col text-center">
-                <a class="btn btn-outline-secondary" href={{ url_for('reviews', asin = asin) }}>I'm Feeling Lucky</a>
+<center>
+    <div class="content-section">
+        <form class="col-12" method="POST" action="">
+            {{ form.hidden_tag() }}
+            <div class="form-row">
+                {{ form.keyword(class="form-control col-sm-10 ml-5", placeholder="Search Book/ASIN") }}
+                {{ form.type(class="btn btn-info dropdown-toggle") }}
+<!--                {{ form.submit(class="btn btn-outline-secondary") }}-->
+<!--                <a class="btn" href={{ url_for('reviews', asin = asin) }}-->
+<!--                <button class="btn" type="submit">I'm Feeling Lucky</button>-->
+<!--                <button type="button" class="btn btn-outline-secondary">I'm Feeling Lucky</button>-->
             </div>
-        </div>
-    </div>
-    <br>
-    <div class="container">
-        <div class="row">
-            {% for book in books %}
-                <div class="col-md-4">
-                    <div class="container">
-                        <div class="book-image">
-                            <a href="{{ url_for('reviews', asin=book.asin) }}">
-                                <img alt="Book Image"
-                                     src={{ book.imUrl }}></a>
-                            <div class="book-description">
-                                <div style="height:75px; overflow-y: scroll; margin: 5px;">
-                                    <strong>{{ book.description }}</strong>
+            </center>
+
+
+        <br>
+        <center>
+{{ form.submit(class="btn btn-outline-secondary rounded-circle mr-1") }}
+            </form>
+<a class="btn btn-secondary rounded-circle" href={{ url_for('reviews', asin = asin) }}>I'm Feeling Lucky</a>
+<!--<button class="btn" type="submit">I'm Feeling Lucky</button>-->
+<br>
+            </center>
+
+        <br>
+<!--<br>-->
+<!--<a class="btn" href={{ url_for('reviews', asin = asin) }}-->
+<!--<button class="btn" type="submit">I'm Feeling Lucky</button>-->
+<!--<br>-->
+<!--    <br><br>-->
+<!--    <div id="check"></div>-->
+<!--    <select class="filtercategory">-->
+<!--        {% for catagory in catagories %}-->
+<!--            <option>{{ catagory }}</option>-->
+<!--        {% endfor %}-->
+<!--    </select>-->
+<!--    <br><br>-->
+<h1 style="color:#2E86C1">Book Catalogue</h1>
+            <div class="container">
+                <div class="row">
+                    {% for book in books %}
+                        <div class="col-md-4">
+                            <div class="container">
+                                <div class="book-image">
+                                    <a href="{{ url_for('reviews', asin=book.asin) }}">
+                                        <img alt="Book Image"
+                                            src={{ book.imUrl }}></a>
+                                 <div class="book-description">
+                                        <div style="height:75px; overflow-y: scroll; margin: 5px;">
+                                            <strong>{{ book.description }}</strong>
+                                        </div>
+                                    </div>
+                                 <div class="asin">
+                                        <strong>{{ book.asin }}</strong>
+                                    </div>
+                                    <div class="book-price">
+                                        <i>{{ book.price }}</i>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="asin">
-                                <strong>{{ book.asin }}</strong>
-                            </div>
-                            <div class="book-price">
-                                <i>{{ book.price }}</i>
-                            </div>
                         </div>
-                    </div>
+                    {% endfor %}
                 </div>
-            {% endfor %}
-        </div>
     </div>
     <br><br>
     <nav aria-label="Page navigation example">

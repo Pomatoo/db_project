@@ -2,6 +2,7 @@
 {% block title %}
     Reviews
 {% endblock %}
+
 {% block content %}
 <br>
     <div class="container">
@@ -96,14 +97,15 @@
                             <strong>Review:</strong>
                             <p>{{ i.review_text }}</p>
                         </div>
-                        <a href="{{ url_for('add_review', asin=bookmeta.asin) }}">
-            <button type="button" class="btn btn-info btn-lg btn-block">Add Review</button>
-        </a>
                         <hr>
                     </div>
                     <br>
                 {% endfor %}
+                 <a href="{{ url_for('add_review', asin=bookmeta.asin) }}">
+            <button type="button" class="btn btn-info btn-lg btn-block">Add Review</button>
+        </a>
             </div>
         </div>
     </div>
+
 {% endblock %}
